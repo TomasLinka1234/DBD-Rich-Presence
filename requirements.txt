@@ -1,0 +1,9 @@
+rapidocr==3.9.2
+onnxruntime>=1.17,<2
+mss>=9
+pypresence>=4.6,<5
+rapidfuzz>=3
+psutil>=5.9
+numpy
+pystray>=0.19
+pillow>=10

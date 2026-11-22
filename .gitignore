@@ -1,0 +1,13 @@
+# prostředí a soubory, které si program vytváří u každého zvlášť
+.venv/
+__pycache__/
+*.pyc
+log.txt
+log.txt.*
+debug/
+obrazky_k_nahrani/
+app/stav.json
+app/obrazky_cache.json
+app/dbd_data_wiki.json
+*.tmp
+*.zip

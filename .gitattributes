@@ -1,0 +1,4 @@
+# .bat soubory musí mít konce řádků Windows (CRLF), jinak je cmd špatně čte
+*.bat -text
+*.png binary
+*.ico binary
