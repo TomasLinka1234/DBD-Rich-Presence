@@ -117,6 +117,17 @@ def message_box(text: str, title: str = "DbD Rich Presence", error: bool = False
         pass
 
 
+def ask_yes_no(text: str, title: str = "DbD Rich Presence") -> bool:
+    """Okénko s otázkou Ano/Ne. Mimo Windows vrací False."""
+    if not IS_WINDOWS:
+        return False
+    try:
+        # MB_YESNO | MB_ICONQUESTION | MB_SETFOREGROUND; IDYES = 6
+        return ctypes.windll.user32.MessageBoxW(None, text, title, 0x4 | 0x20 | 0x00010000) == 6
+    except Exception:
+        return False
+
+
 def open_path(path) -> None:
     """Otevře soubor nebo složku (Průzkumník / Poznámkový blok...)."""
     try:

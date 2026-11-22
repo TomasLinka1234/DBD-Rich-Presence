@@ -1,8 +1,8 @@
 """Spouštění se zapnutím Windows: zástupce ve složce Po spuštění (Startup).
 
-Zástupce spouští pythonw.exe (bez černého okna) s app/pozadi.py. Program pak
-běží neviditelně s ikonkou u hodin a sám čeká, až zapneš Dead by Daylight.
-Nepotřebuje práva správce a jde kdykoli smazat (vypnout_autostart.bat).
+Zástupce spouští DbD-Rich-Presence.exe (u zdrojáků pythonw.exe s main.py).
+Program pak běží neviditelně s ikonkou u hodin a sám čeká, až zapneš
+Dead by Daylight. Nepotřebuje práva správce a jde kdykoli vypnout v menu ikonky.
 """
 
 from __future__ import annotations
@@ -10,7 +10,10 @@ from __future__ import annotations
 import base64
 import os
 import subprocess
+import sys
 from pathlib import Path
+
+from paths import FROZEN, ICON_ICO
 
 APP = Path(__file__).resolve().parent
 ROOT = APP.parent
@@ -30,15 +33,31 @@ def shortcut_path() -> Path | None:
 
 
 def pythonw() -> Path:
-    """pythonw.exe z .venv programu (bez okna); záložně ten, co právě běží."""
-    venv = ROOT / ".venv" / "Scripts" / "pythonw.exe"
-    if venv.exists():
-        return venv
-    import sys
-
+    """pythonw.exe (bez okna) k Pythonu, který právě běží."""
     exe = Path(sys.executable)
     cand = exe.with_name("pythonw.exe")
     return cand if cand.exists() else exe
+
+
+def target() -> tuple[Path, str, Path, str | None]:
+    """(program, argumenty, pracovní složka, ikona) pro zástupce."""
+    if FROZEN:
+        exe = Path(sys.executable)
+        return exe, "--autostart", exe.parent, f"{exe},0"
+    args = '-X utf8 "' + str(APP / "main.py") + '" --autostart'
+    return pythonw(), args, ROOT, (f"{ICON_ICO},0" if ICON_ICO.exists() else None)
+
+
+def points_here() -> bool:
+    """Míří zástupce na tenhle program? (po přesunutí .exe jinam ne)"""
+    link = shortcut_path()
+    if not link or not link.exists():
+        return False
+    try:
+        r = _ps("(New-Object -ComObject WScript.Shell).CreateShortcut(" + _q(link) + ").TargetPath")
+        return Path(r.stdout.strip()).resolve() == target()[0].resolve()
+    except Exception:
+        return True
 
 
 def is_enabled() -> bool:
@@ -65,20 +84,19 @@ def enable() -> tuple[bool, str]:
     if link is None:
         return False, "Nenašel jsem složku Po spuštění (chybí proměnná APPDATA)."
     link.parent.mkdir(parents=True, exist_ok=True)
-    icon = ROOT / "ikony" / "aplikace.ico"
-    args = '-X utf8 "' + str(APP / "pozadi.py") + '" --autostart'
+    prog, args, workdir, icon = target()
     lines = [
         "$ErrorActionPreference = 'Stop'",
         "$sh = New-Object -ComObject WScript.Shell",
         "$s = $sh.CreateShortcut(" + _q(link) + ")",
-        "$s.TargetPath = " + _q(pythonw()),
+        "$s.TargetPath = " + _q(prog),
         "$s.Arguments = " + _q(args),
-        "$s.WorkingDirectory = " + _q(ROOT),
+        "$s.WorkingDirectory = " + _q(workdir),
         "$s.Description = 'DbD Rich Presence - Discord status pro Dead by Daylight'",
         "$s.WindowStyle = 7",
     ]
-    if icon.exists():
-        lines.append("$s.IconLocation = " + _q(str(icon) + ",0"))
+    if icon:
+        lines.append("$s.IconLocation = " + _q(icon))
     lines.append("$s.Save()")
     script = "\n".join(lines)
     try:

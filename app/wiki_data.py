@@ -28,7 +28,7 @@ from catalog import compact
 log = logging.getLogger("dbd")
 
 WIKI = "https://deadbydaylight.wiki.gg"
-USER_AGENT = "DbD-Rich-Presence/1.3 (osobni Discord status; data z wiki nejvys 1x denne)"
+USER_AGENT = "DbD-Rich-Presence/2.0 (osobni Discord status; data z wiki nejvys 1x denne)"
 MAIN, COSMETICS = "Module:Datatable", "Module:Datatable/Cosmetics"
 CACHE_VERSION = 1
 
