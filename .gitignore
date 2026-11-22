@@ -14,3 +14,5 @@ app/stav.json
 app/obrazky_cache.json
 app/dbd_data_wiki.json
 *.tmp
+.pytest_cache/
+.ruff_cache/

@@ -95,3 +95,5 @@ Všechna data programu (nastavení, log, stav) jsou v `%APPDATA%\DbD Rich Presen
 Program nečte paměť hry, nemění herní soubory a nic do hry nevkládá. Jen fotí obrazovku,
 stejně jako OBS nebo Discord při streamování, a text z ní čte u tebe v počítači.
 Na internet posílá jen tvůj status do Discordu a jednou denně se podívá na DbD wiki.
+Celý kód je veřejný a `.exe` sestavuje GitHub automaticky; jak si to ověřit a kam přesně se
+program připojuje, je v [SECURITY.md](SECURITY.md).

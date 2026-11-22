@@ -1,0 +1,18 @@
+[project]
+name = "dbd-rich-presence"
+dynamic = ["version"]
+description = "Discord Rich Presence pro Dead by Daylight (čte obrazovku, ukazuje postavu, mapu a čas zápasu)"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 130
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["app"]

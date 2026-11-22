@@ -1,4 +1,4 @@
-# .bat soubory musí mít konce řádků Windows (CRLF), jinak je cmd špatně čte
-*.bat -text
+# Stejné konce řádků na Windows i Linuxu (testy čtou data bajt po bajtu stejně)
+* text=auto eol=lf
 *.png binary
 *.ico binary

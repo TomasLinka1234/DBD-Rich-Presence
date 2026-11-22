@@ -14,7 +14,6 @@ Spuštění:   python dbd_presence.py              (normální běh v okně)
 from __future__ import annotations
 
 import argparse
-import json
 import logging
 import logging.handlers
 import re
@@ -98,7 +97,6 @@ def collect_images(items: list[str]) -> list[Path]:
 def run_test(items: list[str], cfg: dict) -> int:
     """Vypíše, co program na screenshotech přečte."""
     from capture import to_16x9
-    from catalog import Catalog
     from detect import read_everything
     from ocr import Ocr
     from tracker import Store
@@ -146,7 +144,6 @@ def run_test(items: list[str], cfg: dict) -> int:
 def run_replay(items: list[str], cfg: dict, repeat: int) -> int:
     """Pustí sérii screenshotů jako by to byla živá hra (bez Discordu)."""
     from capture import to_16x9
-    from catalog import Catalog
     from detect import Scanner
     from ocr import Ocr
     from presence import DiscordPresence
@@ -165,7 +162,7 @@ def run_replay(items: list[str], cfg: dict, repeat: int) -> int:
     t = 1_000_000.0
     tracker.game_running(t, t)
     last_hms = None
-    for i, p in enumerate(paths):
+    for p in paths:
         m = re.search(r"(\d{6})", p.stem)
         if m:
             hh, mm, ss = int(m.group(1)[:2]), int(m.group(1)[2:4]), int(m.group(1)[4:])
@@ -190,7 +187,6 @@ def run_diagnostics(cfg: dict) -> int:
     import cv2
 
     from capture import Grabber, enable_dpi_awareness, find_game, find_window, game_hidden, to_16x9
-    from catalog import Catalog
     from detect import read_everything
     from ocr import Ocr
 

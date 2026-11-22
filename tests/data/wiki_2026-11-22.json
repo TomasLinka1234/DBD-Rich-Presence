@@ -1,0 +1,1385 @@
+{
+"killers": [
+{
+"id": 1,
+"name": "Trapper"
+},
+{
+"id": 2,
+"name": "Wraith"
+},
+{
+"id": 3,
+"name": "Hillbilly"
+},
+{
+"id": 4,
+"name": "Nurse"
+},
+{
+"id": 5,
+"name": "Shape"
+},
+{
+"id": 6,
+"name": "Hag"
+},
+{
+"id": 7,
+"name": "Doctor"
+},
+{
+"id": 8,
+"name": "Huntress"
+},
+{
+"id": 9,
+"name": "Cannibal"
+},
+{
+"id": 10,
+"name": "Nightmare"
+},
+{
+"id": 11,
+"name": "Pig"
+},
+{
+"id": 12,
+"name": "Clown"
+},
+{
+"id": 13,
+"name": "Spirit"
+},
+{
+"id": 14,
+"name": "Legion"
+},
+{
+"id": 15,
+"name": "Plague"
+},
+{
+"id": 16,
+"name": "Ghost Face"
+},
+{
+"id": 17,
+"name": "Demogorgon"
+},
+{
+"id": 18,
+"name": "Oni"
+},
+{
+"id": 19,
+"name": "Deathslinger"
+},
+{
+"id": 20,
+"name": "Executioner"
+},
+{
+"id": 21,
+"name": "Blight"
+},
+{
+"id": 22,
+"name": "Twins"
+},
+{
+"id": 23,
+"name": "Trickster"
+},
+{
+"id": 24,
+"name": "Nemesis"
+},
+{
+"id": 25,
+"name": "Cenobite"
+},
+{
+"id": 26,
+"name": "Artist"
+},
+{
+"id": 27,
+"name": "Onryō"
+},
+{
+"id": 28,
+"name": "Dredge"
+},
+{
+"id": 29,
+"name": "Mastermind"
+},
+{
+"id": 30,
+"name": "Knight"
+},
+{
+"id": 31,
+"name": "Skull Merchant"
+},
+{
+"id": 32,
+"name": "Singularity"
+},
+{
+"id": 33,
+"name": "Xenomorph"
+},
+{
+"id": 34,
+"name": "Good Guy"
+},
+{
+"id": 35,
+"name": "Unknown"
+},
+{
+"id": 36,
+"name": "Lich"
+},
+{
+"id": 37,
+"name": "Dark Lord"
+},
+{
+"id": 38,
+"name": "Houndmaster"
+},
+{
+"id": 39,
+"name": "Ghoul"
+},
+{
+"id": 40,
+"name": "Animatronic"
+},
+{
+"id": 41,
+"name": "Krasue"
+},
+{
+"id": 42,
+"name": "First"
+},
+{
+"id": 43,
+"name": "Slasher"
+},
+{
+"id": 44,
+"name": "Judgment"
+},
+{
+"id": 45,
+"name": "Terrifier"
+}
+],
+"survivors": [
+{
+"id": 1,
+"name": "Dwight Fairfield"
+},
+{
+"id": 2,
+"name": "Meg Thomas"
+},
+{
+"id": 3,
+"name": "Claudette Morel"
+},
+{
+"id": 4,
+"name": "Jake Park"
+},
+{
+"id": 5,
+"name": "Nea Karlsson"
+},
+{
+"id": 6,
+"name": "Laurie Strode"
+},
+{
+"id": 7,
+"name": "Ace Visconti"
+},
+{
+"id": 8,
+"name": "William \"Bill\" Overbeck",
+"shortName": "Bill Overbeck"
+},
+{
+"id": 9,
+"name": "Feng Min"
+},
+{
+"id": 10,
+"name": "David King"
+},
+{
+"id": 11,
+"name": "Quentin Smith"
+},
+{
+"id": 12,
+"name": "Detective David Tapp",
+"shortName": "David Tapp",
+"dbdName": "Detective Tapp"
+},
+{
+"id": 13,
+"name": "Kate Denson"
+},
+{
+"id": 14,
+"name": "Adam Francis"
+},
+{
+"id": 15,
+"name": "Jeffrey \"Jeff\" Johansen",
+"shortName": "Jeff Johansen",
+"dbdName": "Jeff Johansen"
+},
+{
+"id": 16,
+"name": "Jane Romero"
+},
+{
+"id": 17,
+"name": "Ashley J. Williams",
+"shortName": "Ash Williams"
+},
+{
+"id": 18,
+"name": "Nancy Wheeler"
+},
+{
+"id": 19,
+"name": "Steve Harrington"
+},
+{
+"id": 20,
+"name": "Yui Kimura"
+},
+{
+"id": 21,
+"name": "Zarina Kassir"
+},
+{
+"id": 22,
+"name": "Cheryl Mason"
+},
+{
+"id": 23,
+"name": "Felix Richter"
+},
+{
+"id": 24,
+"name": "Élodie Rakoto"
+},
+{
+"id": 25,
+"name": "Lee Yun-jin"
+},
+{
+"id": 26,
+"name": "Jill Valentine"
+},
+{
+"id": 27,
+"name": "Leon Scott Kennedy",
+"dbdName": "Leon S. Kennedy"
+},
+{
+"id": 28,
+"name": "Mikaela Reid"
+},
+{
+"id": 29,
+"name": "Jonah Vasquez"
+},
+{
+"id": 30,
+"name": "Yoichi Asakawa"
+},
+{
+"id": 31,
+"name": "Haddie Kaur"
+},
+{
+"id": 32,
+"name": "Ada Wong"
+},
+{
+"id": 33,
+"name": "Rebecca Chambers"
+},
+{
+"id": 34,
+"name": "Vittorio Toscano"
+},
+{
+"id": 35,
+"name": "Thalita Lyra"
+},
+{
+"id": 36,
+"name": "Renato Lyra"
+},
+{
+"id": 37,
+"name": "Gabriel Soma"
+},
+{
+"id": 38,
+"name": "Nicolas Cage"
+},
+{
+"id": 39,
+"name": "Ellen Ripley"
+},
+{
+"id": 40,
+"name": "Alan Wake"
+},
+{
+"id": 41,
+"name": "Sable Ward"
+},
+{
+"id": 42,
+"name": "Aestri Yazar & Baermar Uraz",
+"dbdName": "Aestri Yazar"
+},
+{
+"id": 43,
+"name": "Lara Croft"
+},
+{
+"id": 44,
+"name": "Trevor Belmont"
+},
+{
+"id": 45,
+"name": "Taurie Cain"
+},
+{
+"id": 46,
+"name": "Orela Rose"
+},
+{
+"id": 47,
+"name": "Rick Grimes"
+},
+{
+"id": 48,
+"name": "Michonne Grimes"
+},
+{
+"id": 49,
+"name": "Vee Boonyasak"
+},
+{
+"id": 50,
+"name": "Dustin Henderson"
+},
+{
+"id": 51,
+"name": "Eleven"
+},
+{
+"id": 52,
+"name": "Kwon Tae-young"
+},
+{
+"id": 53,
+"name": "Shane Wiigwaas"
+},
+{
+"id": 54,
+"name": "Aurora Stardotter"
+},
+{
+"id": 55,
+"name": "Sienna Shaw"
+}
+],
+"realms": [
+{
+"id": 1,
+"name": "The MacMillan Estate"
+},
+{
+"id": 2,
+"name": "Autohaven Wreckers"
+},
+{
+"id": 3,
+"name": "Coldwind Farm"
+},
+{
+"id": 4,
+"name": "Crotus Prenn Asylum"
+},
+{
+"id": 5,
+"name": "Haddonfield"
+},
+{
+"id": 6,
+"name": "Backwater Swamp"
+},
+{
+"id": 7,
+"name": "Léry's Memorial Institute"
+},
+{
+"id": 8,
+"name": "Red Forest"
+},
+{
+"id": 9,
+"name": "Springwood"
+},
+{
+"id": 10,
+"name": "Gideon Meat Plant"
+},
+{
+"id": 11,
+"name": "Yamaoka Estate"
+},
+{
+"id": 12,
+"name": "Ormond"
+},
+{
+"id": 13,
+"name": "Hawkins National Laboratory"
+},
+{
+"id": 14,
+"name": "Grave of Glenvale"
+},
+{
+"id": 15,
+"name": "Silent Hill"
+},
+{
+"id": 16,
+"name": "Raccoon City"
+},
+{
+"id": 17,
+"name": "Forsaken Boneyard"
+},
+{
+"id": 18,
+"name": "Withered Isle"
+},
+{
+"id": 19,
+"name": "The Decimated Borgo"
+},
+{
+"id": 20,
+"name": "Dvarka Deepwood"
+},
+{
+"id": 21,
+"name": "Sleepless District"
+},
+{
+"id": 22,
+"name": "The Subdivisions"
+}
+],
+"maps": [
+{
+"id": 1,
+"name": "Coal Tower",
+"realm": 1
+},
+{
+"id": 2,
+"name": "Groaning Storehouse",
+"realm": 1
+},
+{
+"id": 3,
+"name": "Ironworks of Misery",
+"realm": 1
+},
+{
+"id": 4,
+"name": "Shelter Woods",
+"realm": 1
+},
+{
+"id": 5,
+"name": "Suffocation Pit",
+"realm": 1
+},
+{
+"id": 6,
+"name": "Azarov's Resting Place",
+"realm": 2
+},
+{
+"id": 7,
+"name": "Blood Lodge",
+"realm": 2
+},
+{
+"id": 8,
+"name": "Gas Heaven",
+"realm": 2
+},
+{
+"id": 9,
+"name": "Wreckers' Yard",
+"realm": 2
+},
+{
+"id": 10,
+"name": "Wretched Shop",
+"realm": 2
+},
+{
+"id": 11,
+"name": "Fractured Cowshed",
+"realm": 3
+},
+{
+"id": 12,
+"name": "Rancid Abattoir",
+"realm": 3
+},
+{
+"id": 13,
+"name": "Rotten Fields",
+"realm": 3
+},
+{
+"id": 14,
+"name": "The Thompson House",
+"realm": 3
+},
+{
+"id": 15,
+"name": "Torment Creek",
+"realm": 3
+},
+{
+"id": 16,
+"name": "Disturbed Ward",
+"realm": 4
+},
+{
+"id": 17,
+"name": "Father Campbell's Chapel",
+"realm": 4
+},
+{
+"id": 18,
+"name": "Lampkin Lane",
+"realm": 5
+},
+{
+"id": 19,
+"name": "The Pale Rose",
+"realm": 6
+},
+{
+"id": 20,
+"name": "Grim Pantry",
+"realm": 6
+},
+{
+"id": 21,
+"name": "Treatment Theatre",
+"realm": 7
+},
+{
+"id": 22,
+"name": "Mother's Dwelling",
+"realm": 8
+},
+{
+"id": 23,
+"name": "The Temple of Purgation",
+"realm": 8
+},
+{
+"id": 24,
+"name": "Badham Preschool",
+"realm": 9
+},
+{
+"id": 29,
+"name": "The Game",
+"realm": 10
+},
+{
+"id": 30,
+"name": "Family Residence",
+"realm": 11
+},
+{
+"id": 31,
+"name": "Sanctum of Wrath",
+"realm": 11
+},
+{
+"id": 32,
+"name": "Mount Ormond Resort",
+"realm": 12
+},
+{
+"id": 33,
+"name": "The Underground Complex",
+"realm": 13
+},
+{
+"id": 34,
+"name": "Dead Dawg Saloon",
+"realm": 14
+},
+{
+"id": 35,
+"name": "Midwich Elementary School",
+"realm": 15
+},
+{
+"id": 36,
+"name": "Raccoon City Police Station",
+"realm": 16
+},
+{
+"id": 37,
+"name": "Eyrie of Crows",
+"realm": 17
+},
+{
+"id": 38,
+"name": "Garden of Joy",
+"realm": 18
+},
+{
+"id": 39,
+"name": "Raccoon City Police Station East Wing",
+"realm": 16
+},
+{
+"id": 40,
+"name": "Raccoon City Police Station West Wing",
+"realm": 16
+},
+{
+"id": 41,
+"name": "The Shattered Square",
+"realm": 19
+},
+{
+"id": 42,
+"name": "Toba Landing",
+"realm": 20
+},
+{
+"id": 43,
+"name": "Nostromo Wreckage",
+"realm": 20
+},
+{
+"id": 44,
+"name": "Greenville Square",
+"realm": 18
+},
+{
+"id": 45,
+"name": "Forgotten Ruins",
+"realm": 19
+},
+{
+"id": 46,
+"name": "Ormond Lake Mine",
+"realm": 12
+},
+{
+"id": 47,
+"name": "Dead Sands",
+"realm": 17
+},
+{
+"id": 48,
+"name": "Freddy Fazbear's Pizza",
+"realm": 18
+},
+{
+"id": 49,
+"name": "Fallen Refuge",
+"realm": 18
+},
+{
+"id": 50,
+"name": "Trickster's Delusion",
+"realm": 21
+},
+{
+"id": 51,
+"name": "Hartshorne Mall",
+"realm": 22
+}
+],
+"cos": [
+{
+"name": "Look-See",
+"killer": 7,
+"survivor": null
+},
+{
+"name": "Birch",
+"killer": 6,
+"survivor": null
+},
+{
+"name": "Mordeo",
+"killer": 8,
+"survivor": null
+},
+{
+"name": "Krampus",
+"killer": 1,
+"survivor": null
+},
+{
+"name": "Minotaur",
+"killer": 18,
+"survivor": null
+},
+{
+"name": "Ferryman",
+"killer": 21,
+"survivor": null,
+"realName": "Charon"
+},
+{
+"name": "Chatterer",
+"killer": 25,
+"survivor": null,
+"realName": "Jim"
+},
+{
+"name": "Baba Yaga",
+"killer": 8,
+"survivor": null
+},
+{
+"name": "Lisa Garland",
+"killer": null,
+"survivor": 22
+},
+{
+"name": "Cybil Bennett",
+"killer": null,
+"survivor": 22
+},
+{
+"name": "James Sunderland",
+"killer": null,
+"survivor": 22
+},
+{
+"name": "Alessa Gillespie",
+"killer": null,
+"survivor": 22
+},
+{
+"name": "Jonathan Byers",
+"killer": null,
+"survivor": 19
+},
+{
+"name": "Claire Redfield",
+"killer": null,
+"survivor": 26
+},
+{
+"name": "Chris Redfield",
+"killer": null,
+"survivor": 27
+},
+{
+"name": "God of Desire",
+"killer": 23,
+"survivor": null,
+"realName": "Eros"
+},
+{
+"name": "Rotten Remains",
+"killer": 27,
+"survivor": null,
+"realName": "Sadako Yamamura"
+},
+{
+"name": "Armoured Titan",
+"killer": 18,
+"survivor": null,
+"realName": "Reiner Braun"
+},
+{
+"name": "War Hammer Titan",
+"killer": 13,
+"survivor": null,
+"realName": "Lara Tybur"
+},
+{
+"name": "HUNK",
+"killer": 14,
+"survivor": null,
+"article": false
+},
+{
+"name": "William Birkin",
+"killer": 21,
+"survivor": null,
+"article": false
+},
+{
+"name": "Jabberwock",
+"killer": 26,
+"survivor": null
+},
+{
+"name": "Maria",
+"killer": null,
+"survivor": 22
+},
+{
+"name": "Draugr",
+"killer": 30,
+"survivor": null
+},
+{
+"name": "Xenomorph Queen",
+"killer": 33,
+"survivor": null
+},
+{
+"name": "Xenomorph Clone",
+"killer": 33,
+"survivor": null
+},
+{
+"name": "Grid Xenomorph",
+"killer": 33,
+"survivor": null
+},
+{
+"name": "Naughty Bear",
+"killer": 1,
+"survivor": null,
+"article": false
+},
+{
+"name": "Good Gal",
+"killer": 34,
+"survivor": null,
+"realName": "Tiffany Valentine"
+},
+{
+"name": "Pharaoh Eddie",
+"killer": 7,
+"survivor": null,
+"article": false
+},
+{
+"name": "Stranger Eddie",
+"killer": 19,
+"survivor": null,
+"article": false
+},
+{
+"name": "Eddie's Tribute",
+"killer": 28,
+"survivor": null,
+"article": false
+},
+{
+"name": "Samurai Eddie",
+"killer": 18,
+"survivor": null,
+"article": false
+},
+{
+"name": "Were-Elk",
+"killer": 8,
+"survivor": null
+},
+{
+"name": "Tubarão",
+"killer": null,
+"survivor": 36,
+"realName": "Isaac Nunes Oliveira"
+},
+{
+"name": "Blitz",
+"killer": null,
+"survivor": 23,
+"realName": "Elias Kötz"
+},
+{
+"name": "Wamai",
+"killer": null,
+"survivor": 14,
+"realName": "Ngũgĩ Muchoki Furaha"
+},
+{
+"name": "Annie Leonhart",
+"killer": null,
+"survivor": 2
+},
+{
+"name": "Armin Arlert",
+"killer": null,
+"survivor": 23
+},
+{
+"name": "Eren Yeager",
+"killer": null,
+"survivor": 1
+},
+{
+"name": "Hange Zoë",
+"killer": null,
+"survivor": 21
+},
+{
+"name": "Historia Reiss",
+"killer": null,
+"survivor": 13
+},
+{
+"name": "Kenny Ackerman",
+"killer": null,
+"survivor": 7
+},
+{
+"name": "Levi Ackerman",
+"killer": null,
+"survivor": 4
+},
+{
+"name": "Mikasa Ackerman",
+"killer": null,
+"survivor": 20
+},
+{
+"name": "Ripley 8",
+"killer": null,
+"survivor": 39
+},
+{
+"name": "Saga Anderson",
+"killer": null,
+"survivor": 40
+},
+{
+"name": "Rose Marigold",
+"killer": null,
+"survivor": 40
+},
+{
+"name": "Mr Scratch",
+"killer": null,
+"survivor": 40
+},
+{
+"name": "Carlos Oliveira",
+"killer": null,
+"survivor": 27
+},
+{
+"name": "Sheva Alomar",
+"killer": null,
+"survivor": 26
+},
+{
+"name": "Rain Carradine",
+"killer": null,
+"survivor": 39
+},
+{
+"name": "Alucard",
+"killer": null,
+"survivor": 44,
+"realName": "Adrian Fahrenheit Țepeș"
+},
+{
+"name": "Soma Cruz",
+"killer": null,
+"survivor": 44
+},
+{
+"name": "True Form",
+"killer": 37,
+"survivor": null,
+"article": false,
+"realName": "Vlad Tepes Dracula"
+},
+{
+"name": "Miss Fuchi",
+"killer": 26,
+"survivor": null,
+"article": false
+},
+{
+"name": "Tomie Kawakami",
+"killer": 13,
+"survivor": null,
+"article": false
+},
+{
+"name": "Half Spirits' Torments",
+"killer": 28,
+"survivor": null,
+"article": false
+},
+{
+"name": "Rize Kamishiro",
+"killer": 39,
+"survivor": null,
+"article": false
+},
+{
+"name": "Geralt of Rivia",
+"killer": null,
+"survivor": 34
+},
+{
+"name": "Leshen",
+"killer": 26,
+"survivor": null
+},
+{
+"name": "Yellow Rabbit",
+"killer": 40,
+"survivor": null,
+"article": false,
+"realName": "William Afton"
+},
+{
+"name": "Glitchtrap",
+"killer": 40,
+"survivor": null,
+"article": false
+},
+{
+"name": "Boulet Artist",
+"killer": 26,
+"survivor": null,
+"article": false,
+"realName": "Swanthula Boulet"
+},
+{
+"name": "Daryl Dixon",
+"killer": null,
+"survivor": 47
+},
+{
+"name": "Murderous Grizzly",
+"killer": 18,
+"survivor": null,
+"article": false
+},
+{
+"name": "Maggie Rhee",
+"killer": null,
+"survivor": 48
+},
+{
+"name": "Richter Belmont",
+"killer": null,
+"survivor": 44
+},
+{
+"name": "Eddie Munson",
+"killer": null,
+"survivor": 50
+},
+{
+"name": "Robin Buckley",
+"killer": null,
+"survivor": 19
+},
+{
+"name": "Leon Belmont",
+"killer": null,
+"survivor": 44
+},
+{
+"name": "Simon Belmont",
+"killer": null,
+"survivor": 44
+},
+{
+"name": "Maria Renard",
+"killer": null,
+"survivor": 13
+},
+{
+"name": "Sypha Belnades",
+"killer": null,
+"survivor": 28
+},
+{
+"name": "Jonathan Morris",
+"killer": null,
+"survivor": 23
+},
+{
+"name": "Shanoa",
+"killer": null,
+"survivor": 20
+},
+{
+"name": "Death",
+"killer": 4,
+"survivor": null,
+"article": false
+},
+{
+"name": "Souichi Tsujii",
+"killer": 23,
+"survivor": null,
+"article": false
+},
+{
+"name": "Kinkao & Minkao Hikizuri",
+"killer": 22,
+"survivor": null,
+"article": false
+},
+{
+"name": "Terumi Fujino",
+"killer": null,
+"survivor": 25
+},
+{
+"name": "Marionette",
+"killer": null,
+"survivor": 13
+},
+{
+"name": "Tsukiko Izumisawa",
+"killer": null,
+"survivor": 20
+},
+{
+"name": "Hideyoshi Nagachika",
+"killer": null,
+"survivor": 36
+},
+{
+"name": "Eto Yoshimura",
+"killer": null,
+"survivor": 5
+},
+{
+"name": "Touka Kirishima",
+"killer": null,
+"survivor": 20
+},
+{
+"name": "Yennefer of Vengerberg",
+"killer": null,
+"survivor": 13
+},
+{
+"name": "Ciri",
+"killer": null,
+"survivor": 41
+},
+{
+"name": "Triss Merigold",
+"killer": null,
+"survivor": 28
+},
+{
+"name": "Eredin Bréacc Glas",
+"killer": 30,
+"survivor": null,
+"article": false
+},
+{
+"name": "Winter Warrior",
+"killer": 8,
+"survivor": null,
+"realName": "Asia Consent"
+},
+{
+"name": "Kaoru",
+"killer": null,
+"survivor": 20
+},
+{
+"name": "Robbie The Rabbit",
+"killer": 14,
+"survivor": null,
+"article": false
+},
+{
+"name": "One",
+"killer": 42,
+"survivor": null,
+"article": false,
+"realName": "Henry Creel"
+},
+{
+"name": "MiNA",
+"killer": 23,
+"survivor": null,
+"article": false
+},
+{
+"name": "William Hudson",
+"killer": null,
+"survivor": 39
+},
+{
+"name": "Attack Titan",
+"killer": 1,
+"survivor": null,
+"realName": "Eren Yeager"
+},
+{
+"name": "Sasha Braus",
+"killer": null,
+"survivor": 35
+},
+{
+"name": "Collector",
+"killer": 4,
+"survivor": null
+},
+{
+"name": "Hellion",
+"killer": null,
+"survivor": 2
+},
+{
+"name": "Highwayman",
+"killer": null,
+"survivor": 10
+},
+{
+"name": "Leper",
+"killer": null,
+"survivor": 34
+},
+{
+"name": "Plague Doctor",
+"killer": null,
+"survivor": 21
+},
+{
+"name": "Prophet",
+"killer": 21,
+"survivor": null
+},
+{
+"name": "Shimizu Hinako",
+"killer": null,
+"survivor": 22
+},
+{
+"name": "Facemelter Eddie",
+"killer": 8,
+"survivor": null,
+"article": false
+},
+{
+"name": "Glenn Rhee",
+"killer": null,
+"survivor": 47
+},
+{
+"name": "Xenomorph King",
+"killer": 33,
+"survivor": null
+},
+{
+"name": "2B",
+"killer": null,
+"survivor": 9
+},
+{
+"name": "A2",
+"killer": null,
+"survivor": 20
+},
+{
+"name": "Emil",
+"killer": 14,
+"survivor": null,
+"article": false
+},
+{
+"name": "Lilith",
+"killer": 16,
+"survivor": null,
+"article": false
+},
+{
+"name": "Mephisto",
+"killer": 4,
+"survivor": null,
+"article": false,
+"realName": "Dul'Mephistos"
+},
+{
+"name": "Belial",
+"killer": 28,
+"survivor": null,
+"article": false
+},
+{
+"name": "Barbarian",
+"killer": null,
+"survivor": 10
+},
+{
+"name": "Sorceress",
+"killer": null,
+"survivor": 21
+},
+{
+"name": "Necromancer",
+"killer": null,
+"survivor": 45
+},
+{
+"name": "Scooby-Doo",
+"killer": null,
+"survivor": 1
+},
+{
+"name": "Negan Smith",
+"killer": null,
+"survivor": 47
+},
+{
+"name": "Bubble Head Nurse",
+"killer": 13,
+"survivor": null,
+"article": false
+}
+]
+}

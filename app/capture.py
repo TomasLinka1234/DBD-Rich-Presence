@@ -226,10 +226,10 @@ class Grabber:
         if rect is None:
             region = (0, 0, w, h)
         else:
-            l, t, r, b = rect
-            if l < 0 or t < 0 or r > w or b > h:
+            left, top, right, bottom = rect
+            if left < 0 or top < 0 or right > w or bottom > h:
                 return None  # okno není na primárním monitoru -> mss
-            region = (l, t, r, b)
+            region = (left, top, right, bottom)
         for _ in range(10):
             frame = cam.grab(region=region, new_frame_only=False)
             if frame is not None:
@@ -246,8 +246,8 @@ class Grabber:
         if rect is None:
             mon = self._sct.monitors[1]
         else:
-            l, t, r, b = rect
-            mon = {"left": int(l), "top": int(t), "width": int(r - l), "height": int(b - t)}
+            left, top, right, bottom = rect
+            mon = {"left": int(left), "top": int(top), "width": int(right - left), "height": int(bottom - top)}
         shot = self._sct.grab(mon)
         return np.ascontiguousarray(np.asarray(shot)[:, :, :3])
 

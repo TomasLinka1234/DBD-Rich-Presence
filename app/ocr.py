@@ -96,7 +96,7 @@ class Ocr:
         boxes = getattr(res, "boxes", None)
         lines: list[Line] = []
         if boxes is not None:
-            for txt, sc, box in zip(txts, scores, boxes):
+            for txt, sc, box in zip(txts, scores, boxes, strict=False):
                 xs = [float(p[0]) for p in box]
                 ys = [float(p[1]) for p in box]
                 lines.append(Line(str(txt), float(sc), min(xs), min(ys), max(xs), max(ys)))

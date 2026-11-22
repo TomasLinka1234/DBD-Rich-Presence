@@ -1,6 +1,6 @@
 """Hlavní smyčka: hlídá hru, čte obrazovku a posílá status do Discordu.
 
-Používá ji okno (spustit.bat) i běh na pozadí s ikonkou u hodin (pozadi.py).
+Používá ji režim s oknem (main.py --konzole) i běh na pozadí s ikonkou u hodin (pozadi.py).
 Těžké věci (OCR, snímání obrazovky) se načtou až ve chvíli, kdy se spustí hra,
 a po jejím zavření se zase uvolní, takže program bez hry skoro nic nežere.
 """
@@ -14,9 +14,9 @@ import time
 from pathlib import Path
 from typing import Callable
 
-log = logging.getLogger("dbd")
-
 from paths import BUILTIN_DATA, DEBUG_DIR, IMAGE_CACHE, STATE, UPLOADS, WIKI_CACHE, ensure_data_dir
+
+log = logging.getLogger("dbd")
 
 INTERVAL = {"MENU": 1.5, "LOBBY": 1.2, "LOADING": 0.8, "MATCH": 1.5, "POSTGAME": 1.2, "OFF": 2.0}
 RELEASE_AFTER = 90.0      # s bez hry -> uvolnit OCR a snímání obrazovky
