@@ -1,7 +1,11 @@
-# prostředí a soubory, které si program vytváří u každého zvlášť
+# prostředí a výstupy sestavení
 .venv/
 __pycache__/
 *.pyc
+dist/
+build/*/
+*.zip
+# data, která si program vytváří (teď v %APPDATA%, tohle je pro starší verze)
 log.txt
 log.txt.*
 debug/
@@ -10,4 +14,3 @@ app/stav.json
 app/obrazky_cache.json
 app/dbd_data_wiki.json
 *.tmp
-*.zip

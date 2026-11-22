@@ -23,11 +23,9 @@ import time
 from pathlib import Path
 
 APP = Path(__file__).resolve().parent
-ROOT = APP.parent
-CONFIG = ROOT / "nastaveni.json"
-LOG_FILE = ROOT / "log.txt"
-
 sys.path.insert(0, str(APP))
+
+from paths import BUILTIN_DATA, DEBUG_DIR, LOG_FILE, STATE, WIKI_CACHE, ensure_data_dir  # noqa: E402
 
 log = logging.getLogger("dbd")
 
@@ -44,6 +42,7 @@ def setup_logging(debug: bool, to_file: bool = True, console: bool = True) -> No
         log.addHandler(handler)
     if to_file:
         try:
+            ensure_data_dir()
             fh = logging.handlers.RotatingFileHandler(LOG_FILE, maxBytes=1_000_000, backupCount=1, encoding="utf-8")
             fh.setFormatter(logging.Formatter("%(asctime)s  %(message)s", datefmt="%Y-%m-%d %H:%M:%S"))
             log.addHandler(fh)
@@ -53,21 +52,18 @@ def setup_logging(debug: bool, to_file: bool = True, console: bool = True) -> No
 
 
 def load_config() -> dict:
-    try:
-        with open(CONFIG, encoding="utf-8-sig") as f:
-            cfg = json.load(f)
-        return cfg if isinstance(cfg, dict) else {}
-    except FileNotFoundError:
-        return {}
-    except json.JSONDecodeError as e:
-        log.error("Soubor nastaveni.json má chybu na řádku %d: %s", e.lineno, e.msg)
-        log.error("Zkontroluj uvozovky a čárky (nebo soubor smaž a stáhni znovu).")
-        sys.exit(2)
+    import config
+
+    cfg, _, error = config.load_config()
+    if error:
+        log.error("Nastavení (%s) má chybu: %s. Používám výchozí hodnoty.", config.CONFIG, error)
+    return cfg
 
 
-def app_id_from(cfg: dict) -> str | None:
-    raw = str(cfg.get("discord_application_id", "")).strip()
-    return raw if re.fullmatch(r"\d{15,22}", raw) else None
+def app_id_from(cfg: dict) -> str:
+    import config
+
+    return config.app_id_from(cfg)
 
 
 def load_catalog():
@@ -75,7 +71,7 @@ def load_catalog():
     from catalog import Catalog
     from wiki_data import WikiUpdater
 
-    return Catalog(WikiUpdater(APP / "dbd_data.json", APP / "dbd_data_wiki.json", enabled=False).data())
+    return Catalog(WikiUpdater(BUILTIN_DATA, WIKI_CACHE, enabled=False).data())
 
 
 def imread(path: Path):
@@ -112,7 +108,7 @@ def run_test(items: list[str], cfg: dict) -> int:
         log.error("Nenašel jsem žádné obrázky (png/jpg). Přetáhni screenshot na test_screenshotu.bat.")
         return 1
     catalog = load_catalog()
-    own = str(cfg.get("jmeno_ve_hre") or "").strip() or Store(APP / "stav.json").get("own_name")
+    own = str(cfg.get("jmeno_ve_hre") or "").strip() or Store(STATE).get("own_name")
     log.info("Načítám OCR...")
     ocr = Ocr(int(cfg.get("vlakna_ocr", 2) or 2))
     labels = {
@@ -214,8 +210,8 @@ def run_diagnostics(cfg: dict) -> int:
     for i in range(8, 0, -1):
         print(f"   {i}...", flush=True)
         time.sleep(1)
-    out_dir = ROOT / "debug"
-    out_dir.mkdir(exist_ok=True)
+    out_dir = DEBUG_DIR
+    out_dir.mkdir(parents=True, exist_ok=True)
     grabbers = {"dxcam": Grabber("dxcam"), "mss": Grabber("mss")}
     for n in range(1, 4):
         win = find_window(game.pids) or win
@@ -243,7 +239,7 @@ def run_diagnostics(cfg: dict) -> int:
         time.sleep(3)
     for g in grabbers.values():
         g.close()
-    log.info("Hotovo. Snímky jsou ve složce debug (diag_*.jpg). Pošli mi tento výpis, případně i ty snímky.")
+    log.info("Hotovo. Snímky jsou v %s (diag_*.jpg). Pošli mi tento výpis, případně i ty snímky.", out_dir)
     return 0
 
 
@@ -254,11 +250,6 @@ def run_live(cfg: dict, dry_run: bool, debug: bool) -> int:
     from winutil import SingleInstance
 
     app_id = app_id_from(cfg)
-    if app_id is None and not dry_run:
-        log.error("V souboru nastaveni.json chybí discord_application_id.")
-        log.error("Postup je v NAVOD.md (krok 1): vytvoř aplikaci na discord.com/developers/applications,")
-        log.error("zkopíruj její Application ID a vlož ho do nastaveni.json. Pak program spusť znovu.")
-        return 2
     lock = SingleInstance()
     if not lock.ok:
         log.error("DbD Rich Presence už běží: buď na pozadí (ikonka vpravo dole u hodin), nebo v jiném okně.")

@@ -16,8 +16,7 @@ from typing import Callable
 
 log = logging.getLogger("dbd")
 
-APP = Path(__file__).resolve().parent
-ROOT = APP.parent
+from paths import BUILTIN_DATA, DEBUG_DIR, IMAGE_CACHE, STATE, UPLOADS, WIKI_CACHE, ensure_data_dir
 
 INTERVAL = {"MENU": 1.5, "LOBBY": 1.2, "LOADING": 0.8, "MATCH": 1.5, "POSTGAME": 1.2, "OFF": 2.0}
 RELEASE_AFTER = 90.0      # s bez hry -> uvolnit OCR a snímání obrazovky
@@ -113,22 +112,20 @@ class Runner:
 
         cfg, dry_run, debug = self.cfg, self.dry_run, self.debug
         enable_dpi_awareness()
-        self.wiki = WikiUpdater(APP / "dbd_data.json", APP / "dbd_data_wiki.json",
+        ensure_data_dir()
+        self.wiki = WikiUpdater(BUILTIN_DATA, WIKI_CACHE,
                                 enabled=bool(cfg.get("novinky_z_wiki", True)) and not dry_run)
         self.catalog = Catalog(self.wiki.data())
-        store = Store(APP / "stav.json")
-        self.images = Images(self.app_id, cfg, offline=dry_run, cache_path=APP / "obrazky_cache.json",
+        store = Store(STATE)
+        self.images = Images(self.app_id, cfg, offline=dry_run, cache_path=IMAGE_CACHE,
                              catalog=self.catalog)
         self.images.refresh(time.time())
         self.tracker = tracker = Tracker(self.catalog, store, cfg, self.images)
-        snapshots = MapSnapshots(ROOT / "obrazky_k_nahrani", self.images, bool(cfg.get("ukladat_obrazky_map", False)))
-        self.images.badge_folder = ROOT / "odznaky"
-        have_set = (self.images.badge_folder / "odznak_100.png").exists()
-        badges = PrestigeBadges(ROOT / "obrazky_k_nahrani", self.images,
-                                bool(cfg.get("ukladat_odznaky_prestige", False)) and not have_set)
+        snapshots = MapSnapshots(UPLOADS, self.images, bool(cfg.get("ukladat_obrazky_map", False)))
+        badges = PrestigeBadges(UPLOADS, self.images, bool(cfg.get("ukladat_odznaky_prestige", False)))
         self.discord = discord = DiscordPresence(self.app_id or "0", dry_run=dry_run)
         self.wiki.start()
-        debug_dir = ROOT / "debug"
+        debug_dir = DEBUG_DIR
         saved = 0
 
         if tracker.character:
@@ -264,7 +261,7 @@ class Runner:
             try:
                 import cv2
 
-                debug_dir.mkdir(exist_ok=True)
+                debug_dir.mkdir(parents=True, exist_ok=True)
                 what = "mapa" if obs.title else (obs.end_kind or "postava")
                 ok, buf = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
                 if ok:  # imencode + tofile zvládne i cestu s diakritikou

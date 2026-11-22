@@ -10,11 +10,11 @@ a uloží ji do obrazky_cache.json. Discord pak obrázek zobrazí přímo z wiki
 Vlastní obrázky mají přednost: nahrávají se do tvé Discord aplikace
 (Developer Portal -> Rich Presence -> Art Assets) pod jmény podle pravidla:
 
-    killer, survivor               ikonky rolí (jsou ve složce ikony)
+    killer, survivor               ikonky rolí (assets/ikony na GitHubu)
     rotten_fields, the_pale_rose   mapy  (malá písmena, mezery -> _, bez apostrofů)
     coldwind_farm                  realm (když chybí obrázek konkrétní mapy)
     the_ghoul, rize_kamishiro      postavy / skiny (nepovinné)
-    odznak_1 … odznak_100          odznaky prestige (hotové ve složce odznaky)
+    odznak_1 … odznak_100          odznaky prestige (assets/odznaky na GitHubu)
     logo                           výchozí obrázek (nepovinné)
 
 Program si seznam nahraných obrázků sám stahuje z Discordu (veřejný seznam
@@ -45,6 +45,7 @@ USER_AGENT = "DbD-Rich-Presence/1.2 (osobni Discord status; obrazky se nacitaji 
 PRESTIGE_URL = "https://placehold.co/256x256/{bg}/{fg}/png?text={n}&font=oswald"
 
 
+BADGES_URL = "https://github.com/TomasLinka1234/DBD-Rich-Presence/tree/main/assets/odznaky"
 BADGE_PREFIX = "odznak_"   # starší sada se jmenovala prestige_<číslo>
 
 
@@ -201,7 +202,6 @@ class Images:
         self._next = 0.0
         self._busy = False
         self._logged: frozenset[str] | None = None
-        self.badge_folder: Path | None = None   # složka s hotovými odznaky (pro připomínku)
         self._badge_hint = False
 
         def opt(key: str) -> str | None:
@@ -244,10 +244,8 @@ class Images:
             self._busy = False
 
     def _hint_badges(self, names: frozenset[str]) -> None:
-        """Jednou připomenout, že hotové odznaky prestige ještě nejsou nahrané."""
-        if self._badge_hint or not self.prestige_on or self.badge_folder is None:
-            return
-        if not (self.badge_folder / f"{BADGE_PREFIX}1.png").exists():
+        """Jednou připomenout, když odznaky prestige v Art Assets chybí."""
+        if self._badge_hint or not self.prestige_on:
             return
         missing = [n for n in range(1, 101) if badge_key(n) not in names]
         if not missing:
@@ -255,16 +253,14 @@ class Images:
         self._badge_hint = True
         if len(missing) == 100:
             old = any(f"prestige_{n}" in names for n in range(1, 101))
-            log.info("Odznaky prestige (%s1 … %s100) ještě nejsou v Discord aplikaci: nahraj všech 100 obrázků "
-                     "ze složky %s do Art Assets (návod v NAVOD.md). Do té doby se ukazují %s.",
-                     BADGE_PREFIX, BADGE_PREFIX, self.badge_folder.name,
+            log.info("Odznaky prestige (%s1 … %s100) nejsou v Art Assets tvé Discord aplikace. Stáhneš je z %s. "
+                     "Do té doby se ukazují %s.", BADGE_PREFIX, BADGE_PREFIX, BADGES_URL,
                      "starší odznaky" if old else "jednoduché odznaky s číslem")
         else:
             shown = ", ".join(str(n) for n in missing[:10]) + (" …" if len(missing) > 10 else "")
             k = len(missing)
             word = "odznak" if k == 1 else "odznaky" if k < 5 else "odznaků"
-            log.info("V Art Assets chybí %d %s prestige (%s). Najdeš je ve složce %s.",
-                     k, word, shown, self.badge_folder.name)
+            log.info("V Art Assets chybí %d %s prestige (%s). Stáhneš je z %s.", k, word, shown, BADGES_URL)
 
     # ------------------------------------------------------------ lookup
     def has(self, key: str | None) -> str | None:
@@ -447,9 +443,9 @@ class MapSnapshots:
 
 
 class PrestigeBadges:
-    """Záloha pro odznaky prestige: když chybí hotová sada ve složce
-    odznaky, program odznak vyřízne přímo ze hry (menu postav, vlastní
-    řádek ve scoreboardu) a uloží ho do obrazky_k_nahrani jako prestige_<číslo>.png.
+    """Záloha pro odznaky prestige (zapíná se v nastavení): program odznak
+    vyřízne přímo ze hry (menu postav, vlastní řádek ve scoreboardu)
+    a uloží ho do složky obrazky_k_nahrani v datech programu.
     Po nahrání do Art Assets se v Discordu použije místo vygenerovaného odznaku.
     Nic se nikam neposílá."""
 
