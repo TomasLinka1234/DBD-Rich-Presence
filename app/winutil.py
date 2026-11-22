@@ -73,7 +73,7 @@ class SingleInstance:
 
 
 class QuitSignal:
-    """Pojmenovaná událost: `vypnout_autostart.bat` (nebo pozadi.py --ukoncit)
+    """Pojmenovaná událost: `DbD-Rich-Presence.exe --ukoncit` (nebo main.py --ukoncit)
     jí řekne běžícímu programu na pozadí, ať se ukončí."""
 
     def __init__(self, name: str = QUIT_EVENT_NAME) -> None:

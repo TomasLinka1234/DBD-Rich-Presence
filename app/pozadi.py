@@ -1,7 +1,7 @@
 """DbD Rich Presence na pozadí: bez okna, s ikonkou u hodin.
 
     DbD-Rich-Presence.exe              spustit (ikonka u hodin)
-    DbD-Rich-Presence.exe --autostart  totéž, ale potichu, když už běží (zástupce v Po spuštění)
+    DbD-Rich-Presence.exe --autostart  totéž, ale potichu, když už běží (spouští ho Windows po přihlášení)
     DbD-Rich-Presence.exe --ukoncit    ukončit program běžící na pozadí
     DbD-Rich-Presence.exe --self-test vysledek.json   kontrola sestaveného .exe
 
@@ -117,14 +117,11 @@ def run_tray(autostarted: bool) -> int:
                       "Kdykoli to jde vypnout v menu ikonky."):
             ok, info = autostart.enable()
             log.info("Autostart zapnut." if ok else f"Autostart se nepodařilo zapnout: {info}")
-    elif not autostarted and autostart.is_enabled():
-        # .exe se mohl přesunout jinam -> opravit zástupce, ať míří sem
-        def fix_link() -> None:
-            if not autostart.points_here():
-                ok, _ = autostart.enable()
-                log.info("Zástupce pro spouštění s Windows opraven (program je teď jinde)." if ok else
-                         "Zástupce pro spouštění s Windows míří jinam a nejde opravit.")
-        threading.Thread(target=fix_link, daemon=True).start()
+    elif autostart.is_enabled() and not autostart.points_here():
+        # .exe se přesunul jinam (nebo je to zástupce z verze 2.0.0) -> ať se spouští tenhle
+        ok, info = autostart.enable()
+        log.info("Spouštění s Windows opraveno (program je teď jinde)." if ok else
+                 f"Spouštění s Windows míří jinam a nejde opravit: {info}")
 
     quit_signal = QuitSignal()
     stop_all = threading.Event()
@@ -153,7 +150,7 @@ def run_tray(autostarted: bool) -> int:
             holder["run_stop"] = run_stop
             changed = {"cfg": False}
 
-            def should_quit() -> bool:
+            def should_quit(changed=changed, cfg_mtime=cfg_mtime) -> bool:
                 if stop_all.is_set() or quit_signal.is_set():
                     stop_all.set()
                     return True

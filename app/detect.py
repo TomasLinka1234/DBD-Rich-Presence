@@ -27,21 +27,21 @@ class Region:
 
     def rect(self, w: int, h: int) -> tuple[int, int, int, int]:
         if self.anchor == "left":
-            l, r = self.x0 * h, self.x1 * h
+            left, right = self.x0 * h, self.x1 * h
         elif self.anchor == "right":
-            l, r = w - self.x1 * h, w - self.x0 * h
+            left, right = w - self.x1 * h, w - self.x0 * h
         else:
-            l, r = w / 2 + self.x0 * h, w / 2 + self.x1 * h
+            left, right = w / 2 + self.x0 * h, w / 2 + self.x1 * h
 
         def clamp(v: float, hi: int) -> int:
             return max(0, min(hi, round(v)))
 
-        return clamp(l, w), clamp(self.y0 * h, h), clamp(r, w), clamp(self.y1 * h, h)
+        return clamp(left, w), clamp(self.y0 * h, h), clamp(right, w), clamp(self.y1 * h, h)
 
     def crop(self, frame: np.ndarray) -> np.ndarray:
         h, w = frame.shape[:2]
-        l, t, r, b = self.rect(w, h)
-        return frame[t:b, l:r]
+        x0, y0, x1, y1 = self.rect(w, h)
+        return frame[y0:y1, x0:x1]
 
 
 # Tlačítko vpravo dole (PLAY / READY / CANCEL), pod ním killer, násobič, odhad času.
@@ -206,8 +206,8 @@ def _badge_in(ocr: Ocr, frame: np.ndarray, x0: float, y0: float, x1: float, y1: 
 def _badge_left_of(ocr: Ocr, frame: np.ndarray, region: Region, name: Line) -> tuple[int | None, np.ndarray | None]:
     """Odznak prestige vlevo od jména v záhlaví (souřadnice jména jsou uvnitř výřezu `region`)."""
     h, w = frame.shape[:2]
-    l, t, _, _ = region.rect(w, h)
-    nx0, ny0, ny1 = l + name.x0, t + name.y0, t + name.y1
+    rx, ry, _, _ = region.rect(w, h)
+    nx0, ny0, ny1 = rx + name.x0, ry + name.y0, ry + name.y1
     return _badge_in(ocr, frame, nx0 - 0.085 * h, ny0 - 0.012 * h, nx0 - 0.008 * h, ny1 + 0.035 * h, ny1 - ny0)
 
 

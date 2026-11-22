@@ -1,37 +1,35 @@
-"""Spouštění se zapnutím Windows: zástupce ve složce Po spuštění (Startup).
+"""Spouštění se zapnutím Windows.
 
-Zástupce spouští DbD-Rich-Presence.exe (u zdrojáků pythonw.exe s main.py).
-Program pak běží neviditelně s ikonkou u hodin a sám čeká, až zapneš
-Dead by Daylight. Nepotřebuje práva správce a jde kdykoli vypnout v menu ikonky.
+Používá standardní místo, kam se zapisují i Discord, Steam nebo Spotify:
+    HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
+hodnota "DbD Rich Presence" = "C:\\...\\DbD-Rich-Presence.exe" --autostart
+
+Nepotřebuje práva správce, je vidět ve Správci úloh (karta Po spuštění)
+a jde kdykoli vypnout v menu ikonky. Žádné skripty ani PowerShell.
+Verze 2.0.0 místo toho dávala zástupce do složky Po spuštění; ten se
+při zapnutí/vypnutí sám uklidí.
 """
 
 from __future__ import annotations
 
-import base64
 import os
-import subprocess
 import sys
 from pathlib import Path
 
-from paths import FROZEN, ICON_ICO
+from paths import FROZEN
 
 APP = Path(__file__).resolve().parent
-ROOT = APP.parent
-SHORTCUT_NAME = "DbD Rich Presence.lnk"
+RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
+VALUE_NAME = "DbD Rich Presence"
+OLD_SHORTCUT = "DbD Rich Presence.lnk"     # verze 2.0.0
+
+try:
+    import winreg
+except ImportError:          # Linux / macOS: autostart jen na Windows
+    winreg = None
 
 
-def startup_folder() -> Path | None:
-    appdata = os.environ.get("APPDATA")
-    if not appdata:
-        return None
-    return Path(appdata) / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup"
-
-
-def shortcut_path() -> Path | None:
-    folder = startup_folder()
-    return folder / SHORTCUT_NAME if folder else None
-
-
+# ------------------------------------------------------------ příkaz
 def pythonw() -> Path:
     """pythonw.exe (bez okna) k Pythonu, který právě běží."""
     exe = Path(sys.executable)
@@ -39,81 +37,88 @@ def pythonw() -> Path:
     return cand if cand.exists() else exe
 
 
-def target() -> tuple[Path, str, Path, str | None]:
-    """(program, argumenty, pracovní složka, ikona) pro zástupce."""
+def command() -> str:
+    """Co má Windows spustit po přihlášení."""
     if FROZEN:
-        exe = Path(sys.executable)
-        return exe, "--autostart", exe.parent, f"{exe},0"
-    args = '-X utf8 "' + str(APP / "main.py") + '" --autostart'
-    return pythonw(), args, ROOT, (f"{ICON_ICO},0" if ICON_ICO.exists() else None)
+        return f'"{Path(sys.executable)}" --autostart'
+    return f'"{pythonw()}" -X utf8 "{APP / "main.py"}" --autostart'
+
+
+def _norm(cmd: str) -> str:
+    return " ".join(cmd.replace('"', " ").split()).casefold()
+
+
+# ------------------------------------------------------------ registry
+def _read() -> str | None:
+    if winreg is None:
+        return None
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_KEY, 0, winreg.KEY_READ) as k:
+            value, _ = winreg.QueryValueEx(k, VALUE_NAME)
+            return str(value)
+    except OSError:
+        return None
+
+
+def _write(cmd: str) -> None:
+    with winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, RUN_KEY, 0, winreg.KEY_SET_VALUE) as k:
+        winreg.SetValueEx(k, VALUE_NAME, 0, winreg.REG_SZ, cmd)
+
+
+def _delete() -> None:
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_KEY, 0, winreg.KEY_SET_VALUE) as k:
+            winreg.DeleteValue(k, VALUE_NAME)
+    except FileNotFoundError:
+        pass
+
+
+# ------------------------------------------------------------ starý zástupce (2.0.0)
+def old_shortcut() -> Path | None:
+    appdata = os.environ.get("APPDATA")
+    if not appdata:
+        return None
+    return Path(appdata) / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup" / OLD_SHORTCUT
+
+
+def _remove_old_shortcut() -> None:
+    link = old_shortcut()
+    if link and link.exists():
+        try:
+            link.unlink()
+        except OSError:
+            pass
+
+
+# ------------------------------------------------------------ veřejné funkce
+def is_enabled() -> bool:
+    link = old_shortcut()
+    return _read() is not None or bool(link and link.exists())
 
 
 def points_here() -> bool:
-    """Míří zástupce na tenhle program? (po přesunutí .exe jinam ne)"""
-    link = shortcut_path()
-    if not link or not link.exists():
-        return False
-    try:
-        r = _ps("(New-Object -ComObject WScript.Shell).CreateShortcut(" + _q(link) + ").TargetPath")
-        return Path(r.stdout.strip()).resolve() == target()[0].resolve()
-    except Exception:
-        return True
-
-
-def is_enabled() -> bool:
-    p = shortcut_path()
-    return bool(p and p.exists())
-
-
-def _ps(script: str) -> subprocess.CompletedProcess:
-    """PowerShell s příkazem v UTF-16 (zvládne diakritiku a mezery v cestách)."""
-    enc = base64.b64encode(script.encode("utf-16-le")).decode("ascii")
-    flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
-    return subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
-                           "-EncodedCommand", enc], capture_output=True, text=True, errors="replace",
-                          timeout=60, creationflags=flags)
-
-
-def _q(s: str | Path) -> str:
-    """Řetězec pro PowerShell v jednoduchých uvozovkách."""
-    return "'" + str(s).replace("'", "''") + "'"
+    """Spouští se po zapnutí Windows právě tenhle program? (po přesunutí .exe jinam ne)"""
+    current = _read()
+    return current is not None and _norm(current) == _norm(command())
 
 
 def enable() -> tuple[bool, str]:
-    link = shortcut_path()
-    if link is None:
-        return False, "Nenašel jsem složku Po spuštění (chybí proměnná APPDATA)."
-    link.parent.mkdir(parents=True, exist_ok=True)
-    prog, args, workdir, icon = target()
-    lines = [
-        "$ErrorActionPreference = 'Stop'",
-        "$sh = New-Object -ComObject WScript.Shell",
-        "$s = $sh.CreateShortcut(" + _q(link) + ")",
-        "$s.TargetPath = " + _q(prog),
-        "$s.Arguments = " + _q(args),
-        "$s.WorkingDirectory = " + _q(workdir),
-        "$s.Description = 'DbD Rich Presence - Discord status pro Dead by Daylight'",
-        "$s.WindowStyle = 7",
-    ]
-    if icon:
-        lines.append("$s.IconLocation = " + _q(icon))
-    lines.append("$s.Save()")
-    script = "\n".join(lines)
+    if winreg is None:
+        return False, "Spouštění se zapnutím funguje jen ve Windows."
     try:
-        r = _ps(script)
-    except Exception as e:
-        return False, f"PowerShell nejde spustit: {e}"
-    if r.returncode != 0 or not link.exists():
-        return False, (r.stderr or r.stdout or "neznámá chyba").strip()[:400]
-    return True, str(link)
+        _write(command())
+    except OSError as e:
+        return False, f"Zápis do registru se nepovedl: {e}"
+    _remove_old_shortcut()
+    return True, "HKCU\\" + RUN_KEY + "\\" + VALUE_NAME
 
 
 def disable() -> tuple[bool, str]:
-    link = shortcut_path()
-    if link is None or not link.exists():
+    _remove_old_shortcut()
+    if winreg is None or _read() is None:
         return True, "Autostart nebyl zapnutý."
     try:
-        link.unlink()
-        return True, str(link)
-    except Exception as e:
+        _delete()
+    except OSError as e:
         return False, str(e)
+    return True, "HKCU\\" + RUN_KEY + "\\" + VALUE_NAME
