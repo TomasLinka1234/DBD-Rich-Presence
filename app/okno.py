@@ -198,6 +198,8 @@ class Api:
             today = {**tally_dict(t), "line": today_line(t)}
             day = game_day(now)
             recent = [match_dict(m) for m in reversed(stats.snapshot()) if game_day(m.start) == day][:4]
+            for m in recent:
+                m["img"] = self._portrait(m["base"] or m["character"])
         goto, app.pending_tab = app.pending_tab, None
         status_kind, status_text = app.status
         return {
@@ -206,9 +208,41 @@ class Api:
             "game": bool(view.get("game")), "hidden": bool(view.get("hidden")),
             "discord": bool(discord is not None and discord.connected),
             "paused": bool(app.paused), "activity": preview, "today": today, "recent": recent,
+            "hero": self._hero(r, view),
             "first_run": bool(app.first_run_pending), "update": app.updates.info,
             "config_error": app.config_error, "goto": goto,
         }
+
+    def _hero(self, r, view: dict) -> dict | None:
+        """Velký panel na Domů: kdo, prestige, mapa, čas zápasu, portrét."""
+        t = getattr(r, "tracker", None)
+        if t is None or not view.get("game"):
+            return None
+        c = t.character
+        mm = t.map
+        return {"role": t.role, "character": c.name if c else None, "base": c.base if c else None,
+                "prestige": t.current_prestige(),
+                "map": mm.label() if (mm is not None and mm.label()) else None,
+                "start": int(t.match_start) if (t.phase == "MATCH" and t.match_start) else None,
+                "img": self._portrait_of(c)}
+
+    def _portrait_of(self, c) -> str | None:
+        images = getattr(self._app.runner, "images", None)
+        if images is None or c is None:
+            return None
+        try:
+            return images.url_for(images.char_image(c))
+        except Exception:
+            return None
+
+    def _portrait(self, name: str | None) -> str | None:
+        catalog = getattr(self._app.runner, "catalog", None)
+        if not name or name == "?" or catalog is None:
+            return None
+        try:
+            return self._portrait_of(catalog.character(name))
+        except Exception:
+            return None
 
     def set_paused(self, on: bool) -> dict:
         self._app.set_paused(bool(on))
@@ -238,15 +272,17 @@ class Api:
 
         stats = self._stats()
         data = dashboard(stats.snapshot() if stats else [], time.time(), period, role)
-        r = self._app.runner
-        images, catalog = getattr(r, "images", None), getattr(r, "catalog", None)
+        cache: dict = {}
+
+        def img(name):
+            if name not in cache:
+                cache[name] = self._portrait(name)
+            return cache[name]
+
         for c in data["characters"]:
-            c["img"] = None
-            if images is not None and catalog is not None and c["name"] != "?":
-                try:
-                    c["img"] = images.url_for(images.char_image(catalog.character(c["name"])))
-                except Exception:
-                    pass
+            c["img"] = img(c["name"])
+        for m in data["recent"]:
+            m["img"] = img(m["base"] or m["character"])
         return data
 
     def delete_match(self, match_id: int) -> dict:

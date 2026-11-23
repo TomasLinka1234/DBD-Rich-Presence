@@ -23,9 +23,21 @@ class FakeImages:
         return "https://wiki.example/portret.png" if c else None
 
 
+class FakeCharacter:
+    name, base, role = "The Trapper", None, KILLER
+
+
 class FakeTracker:
     def __init__(self, st):
         self.stats = st
+        self.character = FakeCharacter()
+        self.role = KILLER
+        self.map = None
+        self.phase = "LOBBY"
+        self.match_start = None
+
+    def current_prestige(self):
+        return 6
 
 
 class FakeRunner:
@@ -88,6 +100,8 @@ def test_state_for_home_page():
     assert st["activity"]["large"] == "https://wiki.example/trapper.png"
     assert st["activity"]["small"] == "https://cdn.example/odznak_6.png"
     assert st["first_run"] is True and st["goto"] == "stats"
+    assert st["hero"] == {"role": KILLER, "character": "The Trapper", "base": None, "prestige": 6, "map": None,
+                          "start": None, "img": "https://wiki.example/portret.png"}
     assert api.state()["goto"] is None                       # záložka se předá jen jednou
     assert st["today"] is not None and isinstance(st["recent"], list)
     json.dumps(st)                                           # musí jít poslat do JavaScriptu
@@ -119,6 +133,7 @@ def test_dashboard_and_delete(base_data):
     assert d["total"]["matches"] == 2 and d["total"]["wins"] == 2
     assert {c["name"] for c in d["characters"]} == {"The Trapper", "Meg Thomas"}
     assert all(c["img"] == "https://wiki.example/portret.png" for c in d["characters"])
+    assert all(m["img"] == "https://wiki.example/portret.png" for m in d["recent"])
     assert api.dashboard("all", KILLER)["total"]["matches"] == 1
     victim = d["recent"][0]["id"]
     assert api.delete_match(victim) == {"ok": True}
