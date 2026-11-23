@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 
 from paths import CONFIG, ensure_data_dir
@@ -65,6 +66,27 @@ def load_config() -> tuple[dict, bool, str | None]:
     cfg = dict(DEFAULTS)
     cfg.update(data)
     return cfg, False, None
+
+
+def save_config(changes: dict) -> None:
+    """Zapíše změny do nastaveni.json (ostatní položky nechá, jak jsou). Běh na pozadí
+    si změnu sám všimne a nastavení načte znovu."""
+    ensure_data_dir()
+    data: dict = {}
+    if CONFIG.exists():
+        try:
+            with open(CONFIG, encoding="utf-8-sig") as f:
+                loaded = json.load(f)
+            if isinstance(loaded, dict):
+                data = loaded
+        except (OSError, ValueError):
+            data = {}
+    if not data:
+        data = dict(DEFAULTS)
+    data.update(changes)
+    tmp = CONFIG.with_name(CONFIG.name + ".tmp")
+    tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    os.replace(tmp, CONFIG)
 
 
 def app_id_from(cfg: dict) -> str:

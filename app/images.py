@@ -197,6 +197,7 @@ class Images:
         self.catalog = catalog
         self.offline = offline or not app_id
         self.available: set[str] | None = None
+        self.asset_ids: dict[str, str] = {}     # jméno obrázku v Art Assets -> id (náhled v okně)
         self.wiki = WikiImages(cache_path, enabled=not offline and bool(cfg.get("obrazky_z_wiki", True)))
         self.layout = "mapa" if str(cfg.get("velky_obrazek", "postava")).strip().lower().startswith("map") else "postava"
         self._next = 0.0
@@ -228,6 +229,8 @@ class Images:
             with urllib.request.urlopen(req, timeout=8) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
             names = frozenset(str(a.get("name", "")).lower() for a in data if isinstance(a, dict) and a.get("name"))
+            self.asset_ids = {str(a["name"]).lower(): str(a["id"]) for a in data
+                              if isinstance(a, dict) and a.get("name") and a.get("id")}
             self.available = set(names)
             if names != self._logged:
                 self._logged = names
@@ -275,6 +278,17 @@ class Images:
             return k
         if len(k) > MAX_KEY and k[:MAX_KEY] in self.available:
             return k[:MAX_KEY]
+        return None
+
+    def url_for(self, key: str | None) -> str | None:
+        """Adresa obrázku pro náhled v okně: odkaz rovnou, jméno z Art Assets přes CDN Discordu."""
+        if not key:
+            return None
+        if key.startswith(("http://", "https://")):
+            return key
+        aid = self.asset_ids.get(key.lower())
+        if aid and self.app_id:
+            return f"https://cdn.discordapp.com/app-assets/{self.app_id}/{aid}.png"
         return None
 
     def _configured(self, value: str | None) -> str | None:

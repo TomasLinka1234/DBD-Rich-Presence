@@ -31,8 +31,13 @@ class Runner:
                  stop: threading.Event | None = None,
                  on_status: Callable[[str, str], None] | None = None,
                  should_quit: Callable[[], bool] | None = None,
-                 app_id: str | None = None) -> None:
+                 app_id: str | None = None,
+                 paused: Callable[[], bool] | None = None) -> None:
         self.cfg = cfg
+        self.is_paused = paused or (lambda: False)
+        # Co se právě děje (čte okno aplikace): fáze, běží hra, co jde do Discordu.
+        self.view: dict = {"phase": "OFF", "game": False, "hidden": False, "activity": None}
+        self.tracker = self.images = self.discord = None
         self.dry_run = dry_run
         self.debug = debug
         self.stop = stop or threading.Event()
@@ -167,6 +172,7 @@ class Runner:
                         if gone_since is None:
                             gone_since = now
                         tracker.game_closed(now)
+                        self.view.update(phase=tracker.phase, game=False, hidden=False, activity=None)
                         discord.set(None)
                         discord.tick(now)
                         if now - gone_since > DISCONNECT_AFTER:
@@ -189,7 +195,7 @@ class Runner:
                         if not hidden:
                             hidden = True
                             log.info("Hra je schovaná za jiným oknem -> čtení obrazovky čeká. Přepni se do hry.")
-                        discord.set(tracker.activity(now))
+                        self._publish(tracker, now, hidden=True)
                         discord.tick(now)
                         self._report_activity(tracker, now, suffix=" (hra je schovaná)")
                         if self._wait(1.0):
@@ -224,7 +230,7 @@ class Runner:
                     snapshots.tick(frame, tracker.phase, tracker.map,
                                    (now - tracker.match_start) if tracker.match_start else 0.0,
                                    tracker.match_start_exact)
-                    discord.set(tracker.activity(now))
+                    self._publish(tracker, now)
                     discord.tick(now)
                     self._report_activity(tracker, now)
                     spent = time.time() - now
@@ -245,10 +251,19 @@ class Runner:
             self._release_heavy()
         return 0
 
+    def _publish(self, tracker, now: float, hidden: bool = False) -> None:
+        """Status do Discordu (při pozastavení nic) + kopie pro okno aplikace."""
+        act = tracker.activity(now)
+        self.view.update(phase=tracker.phase, game=True, hidden=hidden, activity=act)
+        self.discord.set(None if self.is_paused() else act)
+
     def _report_activity(self, tracker, now: float, suffix: str = "") -> None:
         act = tracker.activity(now) or {}
         parts = [p for p in (act.get("details"), act.get("state")) if p]
         text = " · ".join(parts) or "Dead by Daylight běží"
+        if self.is_paused():
+            self._report(WAIT, "Status pozastaven · " + text)
+            return
         if self.dry_run:
             kind = LIVE
         elif self.discord.connected:

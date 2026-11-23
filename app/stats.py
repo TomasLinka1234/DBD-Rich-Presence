@@ -1,7 +1,7 @@
 """Statistiky odehraných zápasů.
 
 Každý zápas je jeden řádek v %APPDATA%\\DbD Rich Presence\\zapasy.jsonl, třeba:
-    {"start": 1795449695, "end": 1795450400, "role": "KILLER", "character": "The Krasue",
+    {"start": 1795449695, "end": 1795450400, "role": "killer", "character": "The Krasue",
      "base": null, "map": "Rotten Fields", "realm": "Coldwind Farm", "result": "k4", "prestige": 6}
 
 Výsledek se čte z obrazovky konce zápasu (Tally Screen):
@@ -17,9 +17,13 @@ Soubor je jen u tebe v počítači, nikam se neposílá.
 
 from __future__ import annotations
 
+import csv
 import html
+import io
 import json
 import logging
+import os
+import threading
 from collections import Counter
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timedelta
@@ -131,10 +135,12 @@ class Match:
 
 
 class Stats:
-    """Seznam odehraných zápasů; nový zápas se připíše na konec souboru."""
+    """Seznam odehraných zápasů; nový zápas se připíše na konec souboru.
+    Sdílí ho běh na pozadí (zapisuje) a okno aplikace (čte, maže), proto zámek."""
 
     def __init__(self, path: Path | None) -> None:
         self.path = path
+        self.lock = threading.RLock()
         self.matches: list[Match] = self._load(path) if path else []
 
     @staticmethod
@@ -159,19 +165,53 @@ class Stats:
         return out
 
     def add(self, m: Match) -> None:
-        self.matches.append(m)
+        with self.lock:
+            self.matches.append(m)
+            if self.path is None:
+                return
+            try:
+                self.path.parent.mkdir(parents=True, exist_ok=True)
+                with open(self.path, "a", encoding="utf-8") as f:
+                    f.write(m.to_json() + "\n")
+            except OSError as e:
+                log.warning("Zápas se nepodařilo uložit do statistik: %s", e)
+
+    def snapshot(self) -> list[Match]:
+        with self.lock:
+            return list(self.matches)
+
+    def delete(self, match_id: int) -> bool:
+        """Smaže zápas podle začátku (id = začátek v sekundách), třeba špatně rozpoznaný."""
+        with self.lock:
+            keep = [m for m in self.matches if round(m.start) != int(match_id)]
+            if len(keep) == len(self.matches):
+                return False
+            self.matches = keep
+            self._rewrite()
+            return True
+
+    def clear(self) -> None:
+        with self.lock:
+            self.matches = []
+            if self.path is not None:
+                try:
+                    self.path.unlink(missing_ok=True)
+                except OSError as e:
+                    log.warning("Statistiky se nepodařilo smazat: %s", e)
+
+    def _rewrite(self) -> None:
         if self.path is None:
             return
+        tmp = self.path.with_name(self.path.name + ".tmp")
         try:
-            self.path.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.path, "a", encoding="utf-8") as f:
-                f.write(m.to_json() + "\n")
+            tmp.write_text("".join(m.to_json() + "\n" for m in self.matches), encoding="utf-8")
+            os.replace(tmp, self.path)
         except OSError as e:
-            log.warning("Zápas se nepodařilo uložit do statistik: %s", e)
+            log.warning("Statistiky se nepodařilo uložit: %s", e)
 
     def tally(self, keep: Callable[[Match], bool] = lambda m: True) -> Tally:
         t = Tally()
-        for m in self.matches:
+        for m in self.snapshot():
             if keep(m):
                 t.add(m)
         return t
@@ -182,6 +222,14 @@ class Stats:
 
     def for_character(self, name: str | None) -> Tally:
         return self.tally(lambda m: name is not None and m.who == name)
+
+    @staticmethod
+    def _tally_of(matches: list[Match], role: str) -> Tally:
+        t = Tally()
+        for m in matches:
+            if m.role == role:
+                t.add(m)
+        return t
 
 
 @dataclass
@@ -243,6 +291,97 @@ def character_line(t: Tally, lang: str = "cs") -> str | None:
 
 def result_text(result: str | None, lang: str = "cs") -> str | None:
     return RESULT_TEXT.get(lang, RESULT_TEXT["cs"]).get(result or "")
+
+
+# ----------------------------------------------------------------- přehled pro okno aplikace
+PERIODS = ("today", "week", "month", "all")
+WEEKDAYS_CS = ("po", "út", "st", "čt", "pá", "so", "ne")
+
+
+def in_period(m: Match, now: float, period: str) -> bool:
+    d, today = game_day(m.start), game_day(now)
+    if period == "today":
+        return d == today
+    if period == "week":
+        return d.isocalendar()[:2] == today.isocalendar()[:2]
+    if period == "month":
+        return (d.year, d.month) == (today.year, today.month)
+    return True
+
+
+def tally_dict(t: Tally) -> dict:
+    return {"matches": t.matches, "wins": t.wins, "decided": t.decided, "seconds": round(t.seconds),
+            "win_rate": round(100 * t.win_rate) if t.win_rate is not None else None,
+            "avg_seconds": round(t.seconds / t.matches) if t.matches else 0,
+            "results": {k: v for k, v in t.results.items() if v}}
+
+
+def match_dict(m: Match, lang: str = "cs") -> dict:
+    return {"id": round(m.start), "start": round(m.start), "duration": round(m.duration), "role": m.role,
+            "character": m.character, "base": m.base, "map": m.map, "realm": m.realm, "result": m.result,
+            "result_text": result_text(m.result, lang), "win": m.win, "prestige": m.prestige,
+            "when": datetime.fromtimestamp(m.start).strftime("%d. %m. %H:%M")}
+
+
+def dashboard(matches: list[Match], now: float, period: str = "week", role: str = "all",
+              lang: str = "cs") -> dict:
+    """Všechno pro stránku Statistiky v okně: karty, graf po dnech, postavy, mapy, poslední zápasy."""
+    period = period if period in PERIODS else "week"
+    role_ok = (lambda m: True) if role not in (KILLER, SURVIVOR) else (lambda m: m.role == role)
+    matches = sorted(matches, key=lambda m: m.start)
+    sel = [m for m in matches if role_ok(m) and in_period(m, now, period)]
+    total = Tally()
+    for m in sel:
+        total.add(m)
+
+    by_day: dict[date, Tally] = {}
+    for m in matches:
+        if role_ok(m):
+            by_day.setdefault(game_day(m.start), Tally()).add(m)
+    today = game_day(now)
+    days = []
+    for i in range(6 if period in ("today", "week") else 29, -1, -1):
+        d = today - timedelta(days=i)
+        t = by_day.get(d) or Tally()
+        days.append({"date": d.isoformat(), "label": f"{WEEKDAYS_CS[d.weekday()]} {d.day}.",
+                     "matches": t.matches, "wins": t.wins, "losses": t.decided - t.wins,
+                     "unknown": t.matches - t.decided})
+
+    chars, roles = [], {}
+    for m in sel:
+        roles.setdefault(m.who or "?", m.role)
+    for name, t in _group(sel, lambda m: m.who):
+        chars.append({"name": name, "role": roles.get(name), **tally_dict(t)})
+    maps = []
+    for name, t in _group(sel, lambda m: m.map or m.realm):
+        realm = next((m.realm for m in sel if (m.map or m.realm or "?") == name), None)
+        maps.append({"name": None if name == "?" else name, "realm": realm if realm != name else None, **tally_dict(t)})
+    return {
+        "period": period, "role": role if role in (KILLER, SURVIVOR) else "all",
+        "total": tally_dict(total),
+        "killer": tally_dict(Stats._tally_of(sel, KILLER)),
+        "survivor": tally_dict(Stats._tally_of(sel, SURVIVOR)),
+        "days": days, "characters": chars, "maps": maps,
+        "recent": [match_dict(m, lang) for m in reversed(sel[-60:])],
+        "all_matches": len(matches),
+    }
+
+
+def to_csv(matches: list[Match]) -> str:
+    """Export pro Excel: středníky, desetinná čárka, UTF-8 s BOM (kvůli diakritice)."""
+    out = io.StringIO()
+    w = csv.writer(out, delimiter=";", lineterminator="\r\n")
+    w.writerow(["Začátek", "Konec", "Délka (min)", "Role", "Postava", "Základní postava", "Mapa", "Realm",
+                "Výsledek", "Výhra", "Prestige"])
+    for m in sorted(matches, key=lambda m: m.start):
+        w.writerow([datetime.fromtimestamp(m.start).strftime("%d.%m.%Y %H:%M"),
+                    datetime.fromtimestamp(m.end).strftime("%d.%m.%Y %H:%M"),
+                    f"{m.duration / 60:.1f}".replace(".", ","),
+                    {KILLER: "Killer", SURVIVOR: "Survivor"}.get(m.role or "", ""),
+                    m.character or "", m.base or "", m.map or "", m.realm or "",
+                    result_text(m.result) or "nezjištěno", {True: "ano", False: "ne"}.get(m.win, ""),
+                    "" if m.prestige is None else m.prestige])
+    return "\ufeff" + out.getvalue()
 
 
 # ----------------------------------------------------------------- přehled (HTML)

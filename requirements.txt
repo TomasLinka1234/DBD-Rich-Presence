@@ -7,3 +7,4 @@ psutil>=5.9
 numpy
 pystray>=0.19
 pillow>=10
+pywebview>=6.2,<7; sys_platform == "win32"

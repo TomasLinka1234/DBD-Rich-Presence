@@ -6,10 +6,11 @@
    a dej ho, kam chceš (třeba do Dokumentů). Nic se neinstaluje, je to jeden soubor.
 2. Spusť ho. Když Windows ukáže *„Systém Windows ochránil počítač“*, klikni na
    **Další informace → Přesto spustit**.
-3. Napoprvé se zeptá, jestli se má **spouštět se zapnutím Windows**. Dej **Ano**.
+3. Otevře se okno aplikace. Na stránce **Domů** potvrď **spouštění se zapnutím Windows**.
 
-Program pak běží **na pozadí bez okna**, s ikonkou vpravo dole u hodin (na Windows 11
-případně pod šipkou nahoru). Sám počká, až zapneš Dead by Daylight. Bez hry skoro nic
+Okno můžeš klidně zavřít: aplikace běží dál **na pozadí** s ikonkou vpravo dole u hodin
+(na Windows 11 případně pod šipkou nahoru) a sama počká, až zapneš Dead by Daylight.
+Kliknutím na ikonku (nebo dalším spuštěním .exe) se okno zase otevře. Bez hry skoro nic
 nežere: čtení obrazovky se načte až se hrou a po jejím zavření se zase uvolní.
 Start po zapnutí počítače trvá pár sekund, než se program rozbalí.
 
@@ -20,19 +21,29 @@ Start po zapnutí počítače trvá pár sekund, než se program rozbalí.
 - **Hra**: **Options → Graphics → Display Mode: Windowed Fullscreen** a hra v **angličtině**.
   V klasickém fullscreenu může Windows místo hry vyfotit černou obrazovku.
 
+## Okno aplikace
+
+- **Domů**: živý náhled toho, co právě vidí kamarádi v Discordu, jestli běží hra a Discord,
+  a dnešní zápasy. Tlačítkem **Pozastavit status** se status v Discordu schová (třeba když
+  nechceš, aby někdo viděl, že hraješ); aplikace přitom dál počítá statistiky.
+- **Statistiky**: zápasy za dnešek, týden, měsíc nebo celkově, zvlášť za killera a survivora,
+  graf po dnech, výsledky, postavy, mapy a seznam zápasů. Špatně rozpoznaný zápas jde smazat
+  (ikonka koše u řádku), tlačítko **Export do Excelu** uloží všechno jako .csv.
+- **Nastavení**: všechno přepínači, ukládá se samo a hned se projeví.
+- **O aplikaci**: verze, kontrola aktualizací, odkazy, log a složka s daty, úplné ukončení.
+
+Křížek okno jen schová. Úplně se aplikace ukončí v **O aplikaci → Ukončit aplikaci** nebo
+v menu ikonky. Okno vykresluje Microsoft Edge WebView2, který je ve Windows 11 vždycky
+(ve Windows 10 s Edgem). Když chybí, aplikace běží dál jen s ikonkou u hodin a přehled
+statistik se otevře v prohlížeči.
+
 ## Ikonka u hodin
 
-Barva tečky: **šedá** = čeká na hru, **zelená** = ukazuje se v Discordu,
-**oranžová** = hra běží, ale Discord ne, **červená** = chyba (podrobnosti v logu).
+Barva tečky: **šedá** = čeká na hru (nebo je status pozastavený), **zelená** = ukazuje se
+v Discordu, **oranžová** = hra běží, ale Discord ne, **červená** = chyba (podrobnosti v logu).
 
-Pravým tlačítkem na ikonku:
-
-- nahoře je vidět, co program právě ukazuje v Discordu
-- **Statistiky**: otevře v prohlížeči přehled odehraných zápasů (viz níž)
-- **Nastavení**: otevře soubor s nastavením v Poznámkovém bloku; po uložení se samo načte
-- **Otevřít log**, **Otevřít složku s daty**
-- **Spouštět se zapnutím Windows** (zapnout / vypnout)
-- **Ukončit**
+Kliknutím se otevře okno. Pravým tlačítkem: co program právě ukazuje, **Otevřít**,
+**Statistiky**, **Nastavení**, **Pozastavit status**, **Spouštět se zapnutím Windows** a **Ukončit**.
 
 ## Co se kdy v Discordu ukazuje
 
@@ -60,8 +71,7 @@ nápisu (**Merciless Killer** = 4, **Ruthless** = 3, **Brutal** = 2, **The Entit
 **Výhra** = útěk, nebo aspoň 3 zabití za killera. Když se obrazovka konce nepřečte (odpojení,
 hra zavřená uprostřed zápasu), zápas se započítá s výsledkem „nezjištěno“ a do výher se nepočítá.
 
-Ikonka → **Statistiky** otevře přehled: dnes / tento týden / celkem, tabulky podle postav
-(útěky, 4K/3K/2K…, odehraný čas), mapy a posledních 30 zápasů. „Dnes“ začíná ve 4:00 ráno,
+Přehled je v okně na stránce **Statistiky** (viz výš). „Dnes“ začíná ve 4:00 ráno,
 takže noční hraní po půlnoci se počítá ještě ke včerejšku.
 
 Zápasy jsou jen u tebe v souboru `%APPDATA%\DbD Rich Presence\zapasy.jsonl` (jeden řádek
@@ -69,7 +79,8 @@ Zápasy jsou jen u tebe v souboru `%APPDATA%\DbD Rich Presence\zapasy.jsonl` (je
 
 ## Nastavení
 
-Ikonka → **Nastavení** (soubor `%APPDATA%\DbD Rich Presence\nastaveni.json`):
+Nejjednodušší je stránka **Nastavení** v okně. Všechno je ale i v souboru
+`%APPDATA%\DbD Rich Presence\nastaveni.json` (v okně tlačítko *Otevřít soubor s nastavením*):
 
 | Položka | Co dělá |
 |---|---|

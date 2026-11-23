@@ -40,17 +40,22 @@ else:
     )
 
 datas = [(os.path.join(APP, f), "app") for f in ("dbd_data.json", "ikona.png", "ikona.ico")]
+datas += [(os.path.join(APP, "ui", "index.html"), os.path.join("app", "ui"))]     # vzhled okna aplikace
 datas += collect_data_files("rapidocr", excludes=["**/pytorch/**"])
 
 hiddenimports = collect_submodules("rapidocr", filter=lambda name: not any(s in name for s in SKIP))
 hiddenimports += ["pystray._win32"]
+# Okno aplikace: pywebview přes WinForms + Edge WebView2 (pythonnet = clr). Ostatní platformy pywebview nejsou potřeba.
+hiddenimports += ["webview.platforms.winforms", "webview.platforms.edgechromium", "clr"]
+WEBVIEW_SKIP = ["webview.platforms.gtk", "webview.platforms.qt", "webview.platforms.cocoa", "webview.platforms.cef",
+                "webview.platforms.android", "webview.platforms.mshtml", "qtpy", "gi", "cefpython3", "objc"]
 
 a = Analysis(
     [os.path.join(APP, "main.py")],
     pathex=[APP],
     datas=datas,
     hiddenimports=hiddenimports,
-    excludes=["torch", "paddle", "openvino", "tensorrt", "MNN", "tkinter", "matplotlib", "IPython", "pytest",
+    excludes=WEBVIEW_SKIP + ["torch", "paddle", "openvino", "tensorrt", "MNN", "tkinter", "matplotlib", "IPython", "pytest",
               "scipy", "pandas", "sympy", "lxml", "cryptography", "PyQt5", "PyQt6", "PySide2", "PySide6"],
     noarchive=False,
 )

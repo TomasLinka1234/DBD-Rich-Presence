@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DbD Rich Presence</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0e0e10; --side: #121215; --panel: #17171b; --panel2: #1d1d22; --line: #26262c; --line2: #2f2f36;
+  --text: #ecebe8; --muted: #8f8c88; --dim: #6c6a66;
+  --red: #d6293e; --red2: #a81d2f; --green: #4fcf85; --amber: #f0a030; --blue: #5b8cff;
+  --radius: 12px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+  font: 14px/1.45 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; overflow: hidden; }
+button { font: inherit; color: inherit; }
+body { display: flex; }
+svg { flex: none; }
+
+/* ---------- postranní panel ---------- */
+.side { width: 244px; background: var(--side); border-right: 1px solid var(--line); display: flex;
+  flex-direction: column; padding: 18px 14px; gap: 18px; }
+.brand { display: flex; align-items: center; gap: 11px; padding: 2px 6px 6px; }
+.brand img { width: 40px; height: 40px; border-radius: 10px; }
+.brand b { display: block; font-size: 15px; letter-spacing: .2px; }
+.brand span { color: var(--muted); font-size: 12px; }
+nav { display: flex; flex-direction: column; gap: 3px; }
+.nav { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border: 0; border-radius: 9px;
+  background: transparent; color: #c9c7c3; cursor: pointer; text-align: left; font-size: 14px; }
+.nav:hover { background: #1b1b20; color: var(--text); }
+.nav.active { background: #22161a; color: #fff; box-shadow: inset 3px 0 0 var(--red); }
+.nav svg { width: 18px; height: 18px; opacity: .9; }
+.side-foot { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+.pill { display: flex; align-items: center; gap: 9px; padding: 8px 11px; border-radius: 9px;
+  background: var(--panel); border: 1px solid var(--line); font-size: 12.5px; color: #c9c7c3; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); flex: none; }
+.dot.ok { background: var(--green); box-shadow: 0 0 0 3px #4fcf8522; }
+.dot.warn { background: var(--amber); box-shadow: 0 0 0 3px #f0a03022; }
+.dot.err { background: var(--red); box-shadow: 0 0 0 3px #d6293e22; }
+
+/* ---------- obsah ---------- */
+main { flex: 1; overflow-y: auto; scrollbar-gutter: stable; }
+main::-webkit-scrollbar { width: 10px; }
+main::-webkit-scrollbar-thumb { background: #2a2a30; border-radius: 10px; border: 3px solid var(--bg); }
+.page { display: none; max-width: 1040px; margin: 0 auto; padding: 28px 32px 48px; }
+.page.active { display: block; animation: fade .18s ease-out; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+h1 { font-size: 24px; margin: 0 0 4px; font-weight: 650; letter-spacing: .2px; }
+.lead { color: var(--muted); margin: 0 0 22px; }
+h2 { font-size: 15px; margin: 30px 0 12px; font-weight: 600; color: #dedcd8; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+.grid { display: grid; gap: 14px; }
+.g2 { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.row { display: flex; align-items: center; gap: 10px; }
+.spacer { flex: 1; }
+.muted { color: var(--muted); }
+.small { font-size: 12.5px; }
+.hidden { display: none !important; }
+
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 9px; cursor: pointer;
+  border: 1px solid var(--line2); background: var(--panel2); color: var(--text); font-size: 13.5px; white-space: nowrap; }
+.btn:hover { background: #25252b; }
+.btn svg { width: 16px; height: 16px; }
+.btn.primary { background: var(--red); border-color: var(--red); color: #fff; }
+.btn.primary:hover { background: #e23349; }
+.btn.danger { color: #ff8a97; border-color: #4a2026; background: #22151a; }
+.btn.danger:hover { background: #2c181e; }
+.btn.ghost { background: transparent; }
+.btn:disabled { opacity: .5; cursor: default; }
+
+/* ---------- domů ---------- */
+.welcome { background: linear-gradient(135deg, #2a1218, #17171b 60%); border: 1px solid #4a2026; margin-bottom: 18px; }
+.welcome h3 { margin: 0 0 6px; font-size: 17px; }
+.checks { margin: 12px 0 16px; padding: 0; list-style: none; display: grid; gap: 7px; }
+.checks li { display: flex; gap: 10px; color: #d6d4d0; }
+.checks li::before { content: ""; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--red); flex: none; margin-top: 1px; }
+.banner { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--radius);
+  background: #13202a; border: 1px solid #23435a; margin-bottom: 18px; }
+.banner.warn { background: #2a2113; border-color: #5a4423; }
+.tiles { margin-bottom: 14px; }
+.tile { display: flex; align-items: center; gap: 12px; }
+.tile .ic { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--panel2); }
+.tile .ic svg { width: 19px; height: 19px; }
+.tile b { display: block; font-size: 14.5px; }
+.tile span { color: var(--muted); font-size: 12.5px; }
+
+.dc { background: #232428; border-radius: 10px; padding: 14px 16px 16px; border: 1px solid #2c2d31; }
+.dc .hdr { font-size: 11.5px; font-weight: 700; letter-spacing: .6px; color: #b5bac1; text-transform: uppercase; margin-bottom: 10px; }
+.dc .body { display: flex; gap: 14px; align-items: center; }
+.dc .imgs { position: relative; width: 96px; height: 96px; flex: none; }
+.dc .large { width: 96px; height: 96px; border-radius: 10px; object-fit: cover; background: #18191c; display: block; }
+.dc .smallimg { position: absolute; right: -6px; bottom: -6px; width: 34px; height: 34px; border-radius: 50%;
+  border: 4px solid #232428; background: #18191c; object-fit: cover; }
+.dc .name { font-weight: 700; color: #f2f3f5; font-size: 15px; }
+.dc .line { color: #dbdee1; font-size: 13.5px; }
+.dc .time { color: #23a55a; font-size: 13px; display: flex; align-items: center; gap: 6px; margin-top: 3px; font-weight: 600; }
+.dc .time svg { width: 15px; height: 15px; }
+.dc .ph { width: 96px; height: 96px; border-radius: 10px; background: #18191c; display: grid; place-items: center; color: #5c5f66; }
+.dc .ph svg { width: 40px; height: 40px; }
+.dc.empty .body { opacity: .8; }
+.paused-note { margin-top: 10px; color: var(--amber); font-size: 12.5px; }
+
+.today { display: flex; flex-direction: column; gap: 12px; }
+.big { font-size: 34px; font-weight: 650; line-height: 1.1; }
+.kv { display: flex; gap: 22px; }
+.kv div b { display: block; font-size: 18px; }
+.kv div span { color: var(--muted); font-size: 12px; }
+.mini { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; grid-template-columns: minmax(0, 1fr); }
+.mini li { min-width: 0; display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: var(--panel2); border-radius: 8px; font-size: 13px; }
+.mini li .who { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.chip { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.chip.win { background: #173524; color: var(--green); }
+.chip.loss { background: #3a171d; color: #ff7c8b; }
+.chip.unk { background: #26262b; color: var(--muted); }
+.chip.k { background: #2b1a1e; color: #ffb1ba; }
+.chip.s { background: #172431; color: #9cc3ff; }
+
+/* ---------- statistiky ---------- */
+.toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.seg { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+.seg button { border: 0; background: transparent; padding: 6px 13px; border-radius: 7px; cursor: pointer; color: #c9c7c3; font-size: 13px; }
+.seg button.on { background: #2a2a31; color: #fff; }
+.card .k { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .7px; }
+.card .v { font-size: 28px; font-weight: 650; margin: 2px 0 0; }
+.card .s { color: var(--muted); font-size: 12.5px; }
+.chart svg { width: 100%; height: 190px; display: block; }
+.legend { display: flex; gap: 16px; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.bars { display: grid; gap: 9px; }
+.bar { display: grid; grid-template-columns: 110px 1fr 44px; align-items: center; gap: 10px; font-size: 13px; }
+.bar .track { height: 9px; border-radius: 9px; background: #24242a; overflow: hidden; }
+.bar .fill { height: 100%; border-radius: 9px; }
+.bar .n { text-align: right; color: var(--muted); }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: right; color: var(--muted); font-weight: 500; font-size: 11.5px; text-transform: uppercase; letter-spacing: .6px;
+  padding: 0 10px 8px; border-bottom: 1px solid var(--line); }
+td { text-align: right; padding: 8px 10px; border-bottom: 1px solid #202025; white-space: nowrap; }
+th.l, td.l { text-align: left; }
+td.l { white-space: normal; }
+td, th { padding-left: 8px; padding-right: 8px; }
+tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: #1b1b20; }
+.who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.av { width: 30px; height: 30px; border-radius: 8px; object-fit: cover; background: #26262c; flex: none;
+  display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #a9a6a2; }
+.del { border: 0; background: transparent; color: var(--dim); cursor: pointer; padding: 4px; border-radius: 6px; opacity: 0; }
+tr:hover .del { opacity: 1; }
+.del:hover { color: #ff7c8b; background: #2a171b; }
+.del svg { width: 15px; height: 15px; display: block; }
+.confirm { display: inline-flex; gap: 6px; align-items: center; font-size: 12.5px; }
+.confirm button { border: 0; border-radius: 6px; padding: 3px 9px; cursor: pointer; }
+.confirm .yes { background: var(--red); color: #fff; }
+.confirm .no { background: #2a2a31; }
+.empty { text-align: center; padding: 46px 20px; color: var(--muted); }
+.empty svg { width: 46px; height: 46px; color: #3a3a42; margin-bottom: 10px; }
+.empty b { display: block; color: #d6d4d0; font-size: 15px; margin-bottom: 4px; }
+.tables { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+
+/* ---------- nastavení ---------- */
+.set { display: flex; align-items: center; gap: 16px; padding: 13px 0; border-bottom: 1px solid #222227; }
+.set:last-child { border-bottom: 0; }
+.set .t { flex: 1; min-width: 0; }
+.set .t b { display: block; font-weight: 500; }
+.set .t span { color: var(--muted); font-size: 12.5px; }
+.sw { position: relative; width: 42px; height: 24px; flex: none; }
+.sw input { opacity: 0; width: 0; height: 0; position: absolute; }
+.sw span { position: absolute; inset: 0; background: #34343c; border-radius: 24px; cursor: pointer; transition: .15s; }
+.sw span::before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; border-radius: 50%; background: #d8d6d2; transition: .15s; }
+.sw input:checked + span { background: var(--red); }
+.sw input:checked + span::before { transform: translateX(18px); background: #fff; }
+.sw input:focus-visible + span { outline: 2px solid #fff6; outline-offset: 2px; }
+select, input[type=text], input[type=number] { background: var(--panel2); border: 1px solid var(--line2); color: var(--text);
+  border-radius: 8px; padding: 7px 10px; font: inherit; font-size: 13.5px; min-width: 190px; }
+input[type=number] { min-width: 90px; width: 90px; }
+select:focus, input:focus { outline: none; border-color: #5a5a66; }
+input.bad { border-color: var(--red); }
+.sect-h { display: flex; align-items: center; gap: 8px; cursor: default; }
+.sect-h.toggle { cursor: pointer; user-select: none; }
+.sect-h .chev { transition: transform .15s; width: 16px; height: 16px; }
+.sect-h.open .chev { transform: rotate(90deg); }
+
+/* ---------- o aplikaci ---------- */
+.about-top { display: flex; align-items: center; gap: 18px; }
+.about-top img { width: 72px; height: 72px; border-radius: 16px; }
+.links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.link { display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-radius: 10px; background: var(--panel2);
+  border: 1px solid var(--line); cursor: pointer; text-align: left; }
+.link:hover { border-color: #3a3a44; }
+.link svg { width: 18px; height: 18px; color: var(--muted); }
+.link b { display: block; font-weight: 500; }
+.link span { color: var(--muted); font-size: 12px; }
+
+#toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px); background: #26262c;
+  border: 1px solid #36363e; padding: 9px 16px; border-radius: 10px; font-size: 13px; opacity: 0; pointer-events: none;
+  transition: .2s; box-shadow: 0 8px 30px #0008; }
+#toast.on { opacity: 1; transform: translateX(-50%); }
+</style>
+</head>
+<body>
+<aside class="side">
+  <div class="brand"><img src="{{LOGO}}" alt=""><div><b>DbD Rich Presence</b><span>verze {{VERSION}}</span></div></div>
+  <nav>
+    <button class="nav active" data-page="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Domů</button>
+    <button class="nav" data-page="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Statistiky</button>
+    <button class="nav" data-page="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Nastavení</button>
+    <button class="nav" data-page="about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>O aplikaci</button>
+  </nav>
+  <div class="side-foot">
+    <div class="pill"><span class="dot" id="dot-game"></span><span id="txt-game">Dead by Daylight neběží</span></div>
+    <div class="pill"><span class="dot" id="dot-discord"></span><span id="txt-discord">Discord…</span></div>
+    <button class="btn ghost" id="pause-btn"></button>
+  </div>
+</aside>
+
+<main>
+  <!-- ============================ DOMŮ ============================ -->
+  <section class="page active" id="page-home">
+    <h1>Domů</h1>
+    <p class="lead" id="home-lead">Co se právě ukazuje v Discordu.</p>
+
+    <div class="panel welcome hidden" id="welcome">
+      <h3>Vítej v DbD Rich Presence!</h3>
+      <div class="muted">Než začneš, zkontroluj tři věci:</div>
+      <ul class="checks">
+        <li>Discord běží jako aplikace a v Nastavení → Soukromí aktivity máš zapnuté „Sdílet svou aktivitu“.</li>
+        <li>Ve hře je Options → Graphics → Display Mode: Windowed Fullscreen.</li>
+        <li>Hra je v angličtině.</li>
+      </ul>
+      <div class="row"><b>Spouštět se zapnutím Windows?</b><span class="muted small">Poběží na pozadí s ikonkou u hodin.</span></div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" onclick="firstRun(true)">Ano, spouštět</button>
+        <button class="btn" onclick="firstRun(false)">Teď ne</button>
+      </div>
+    </div>
+
+    <div class="banner hidden" id="update-banner">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#7fb4ff" stroke-width="2" stroke-linecap="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>
+      <div class="spacer"><b id="update-text">Je tu nová verze.</b><div class="muted small">Stáhni ji a přepiš jí ten starý .exe.</div></div>
+      <button class="btn primary" onclick="openLink('vydani')">Stáhnout</button>
+    </div>
+    <div class="banner warn hidden" id="config-banner"><span id="config-text"></span></div>
+
+    <div class="grid g3 tiles">
+      <div class="panel tile"><div class="ic" id="ic-game"></div><div><b id="t-game">—</b><span id="t-game-s">Dead by Daylight</span></div></div>
+      <div class="panel tile"><div class="ic" id="ic-discord"></div><div><b id="t-discord">—</b><span>Discord</span></div></div>
+      <div class="panel tile"><div class="ic" id="ic-share"></div><div><b id="t-share">—</b><span>Status</span></div></div>
+    </div>
+
+    <div class="grid g2">
+      <div class="panel">
+        <div class="row" style="margin-bottom:12px"><b>Náhled v Discordu</b><span class="spacer"></span><span class="muted small">takhle to vidí kamarádi</span></div>
+        <div class="dc" id="dc"></div>
+        <div class="paused-note hidden" id="paused-note">Status je pozastavený, kamarádi teď nic nevidí.</div>
+      </div>
+      <div class="panel today">
+        <div class="row"><b>Dnes</b><span class="spacer"></span><button class="btn ghost small" onclick="go('stats')">Statistiky →</button></div>
+        <div class="row" style="align-items:flex-end; gap:16px">
+          <div><div class="big" id="today-n">0</div><div class="muted small" id="today-w">zápasů</div></div>
+          <div class="kv"><div><b id="today-wins">–</b><span>výhry</span></div><div><b id="today-time">0 min</b><span>odehráno</span></div></div>
+        </div>
+        <ul class="mini" id="today-list"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ STATISTIKY ============================ -->
+  <section class="page" id="page-stats">
+    <div class="row"><div><h1>Statistiky</h1><p class="lead">Všechno se počítá jen u tebe v počítači.</p></div>
+      <span class="spacer"></span><button class="btn" onclick="exportCsv()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>Export do Excelu</button></div>
+    <div class="toolbar">
+      <div class="seg" id="seg-period">
+        <button data-v="today">Dnes</button><button data-v="week" class="on">Týden</button><button data-v="month">Měsíc</button><button data-v="all">Vše</button>
+      </div>
+      <div class="seg" id="seg-role">
+        <button data-v="all" class="on">Obě role</button><button data-v="killer">Killer</button><button data-v="survivor">Survivor</button>
+      </div>
+    </div>
+    <div id="stats-body"></div>
+  </section>
+
+  <!-- ============================ NASTAVENÍ ============================ -->
+  <section class="page" id="page-settings">
+    <h1>Nastavení</h1>
+    <p class="lead">Změny se uloží a projeví samy, nic není potřeba restartovat.</p>
+    <div id="settings-body"></div>
+  </section>
+
+  <!-- ============================ O APLIKACI ============================ -->
+  <section class="page" id="page-about">
+    <h1>O aplikaci</h1>
+    <p class="lead">Open source, zdarma, bez reklam a bez sledování.</p>
+    <div class="panel">
+      <div class="about-top">
+        <img src="{{LOGO}}" alt="">
+        <div class="spacer"><div style="font-size:19px;font-weight:650">DbD Rich Presence</div>
+          <div class="muted">verze {{VERSION}} · licence MIT · autor TomasLinka1234</div>
+          <div class="small" id="upd-result" style="margin-top:6px"></div></div>
+        <button class="btn" id="upd-btn" onclick="checkUpdate(true)">Zkontrolovat aktualizace</button>
+      </div>
+    </div>
+    <h2>Odkazy</h2>
+    <div class="links">
+      <button class="link" onclick="openLink('repo')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg><div><b>Zdrojový kód</b><span>GitHub</span></div></button>
+      <button class="link" onclick="openLink('navod')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/></svg><div><b>Návod</b><span>Nastavení hry a Discordu</span></div></button>
+      <button class="link" onclick="openLink('bezpecnost')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><div><b>Bezpečnost</b><span>Co program dělá a jak ho ověřit</span></div></button>
+      <button class="link" onclick="openLink('chyba')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div><b>Nahlásit chybu</b><span>Issues na GitHubu</span></div></button>
+    </div>
+    <h2>Soubory</h2>
+    <div class="row">
+      <button class="btn" onclick="call('open_item','log')">Otevřít log</button>
+      <button class="btn" onclick="call('open_item','data')">Otevřít složku s daty</button>
+      <span class="spacer"></span>
+      <button class="btn danger" onclick="quitApp()">Ukončit aplikaci</button>
+    </div>
+    <p class="muted small" style="margin-top:26px">Zavřením okna se aplikace schová do ikonky u hodin a status v Discordu běží dál.
+      Neoficiální fanouškovský nástroj, bez vazby na Behaviour Interactive. Portréty a ikony map jsou z DbD wiki (CC BY-SA).</p>
+  </section>
+</main>
+<div id="toast"></div>
+
+<script>
+"use strict";
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const api = () => (window.pywebview && window.pywebview.api) || null;
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const KILLER = "killer", SURVIVOR = "survivor";
+const S = { page: "home", state: null, period: "week", role: "all", settings: null, timers: {}, statsAt: 0, confirm: null };
+
+const ICON = {
+  game: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M6 12h4M8 10v4M15 11h.01M18 13h.01"/></svg>',
+  discord: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.3 5.3A17 17 0 0 0 15 4l-.5 1a15.7 15.7 0 0 0-5 0L9 4a17 17 0 0 0-4.3 1.3C2 9.4 1.3 13.4 1.6 17.3A17 17 0 0 0 6.8 20l1.1-1.7a11 11 0 0 1-1.7-.8l.4-.3a12.2 12.2 0 0 0 10.8 0l.4.3-1.7.8 1.1 1.7a17 17 0 0 0 5.2-2.7c.4-4.6-.7-8.5-3.1-12ZM8.5 14.9c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1Zm7 0c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1Z"/></svg>',
+  eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeoff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17.9 17.9A10 10 0 0 1 12 19c-6.5 0-10-7-10-7a18 18 0 0 1 4.1-5M9.9 5.2A9 9 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-2.2 3.2M1 1l22 22"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>',
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>',
+  chev: '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>',
+  chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  pad: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10a5 5 0 0 1 4.9 6l-.7 3.5a2.5 2.5 0 0 1-4.3 1.2L14.8 15H9.2l-2.1 2.7a2.5 2.5 0 0 1-4.3-1.2L2.1 13A5 5 0 0 1 7 7Zm1 3H7v1.5H5.5v1H7V14h1v-1.5h1.5v-1H8zm8 .5a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8Zm2 2a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8Z"/></svg>',
+};
+
+// ---------------------------------------------------------------- pomocníci
+function plural(n, one, few, many) { return n === 1 ? one : (n >= 2 && n <= 4 ? few : many); }
+function dur(sec) {
+  const m = Math.round((sec || 0) / 60), h = Math.floor(m / 60);
+  return h ? `${h} h ${String(m % 60).padStart(2, "0")} min` : `${m} min`;
+}
+function clock(sec) {
+  sec = Math.max(0, Math.floor(sec)); const h = Math.floor(sec / 3600), m = Math.floor(sec / 60) % 60, s = sec % 60;
+  return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(s).padStart(2, "0");
+}
+function durShort(sec) {
+  return sec >= 3600 ? (sec / 3600).toFixed(1).replace(".", ",") + " h" : Math.round((sec || 0) / 60) + " min";
+}
+function pct(v) { return v === null || v === undefined ? "–" : v + " %"; }
+function initials(name) { return (name || "?").replace(/^The /, "").split(/\s+/).map(w => w.replace(/[^A-Za-z0-9]/g, "")[0] || "").join("").slice(0, 2).toUpperCase() || "?"; }
+function avFail(img, txt) { const d = document.createElement("div"); d.className = "av"; d.textContent = txt; img.replaceWith(d); }
+function roleChip(r) { return r === KILLER ? '<span class="chip k">Killer</span>' : r === SURVIVOR ? '<span class="chip s">Survivor</span>' : ""; }
+function resultChip(m) {
+  const cls = m.win === true ? "win" : m.win === false ? "loss" : "unk";
+  return `<span class="chip ${cls}">${esc(m.result_text || "nezjištěno")}</span>`;
+}
+function toast(text) {
+  const t = $("#toast"); t.textContent = text; t.classList.add("on");
+  clearTimeout(S.timers.toast); S.timers.toast = setTimeout(() => t.classList.remove("on"), 2200);
+}
+async function call(name, ...args) {
+  const a = api();
+  if (!a || typeof a[name] !== "function") return null;
+  try { return await a[name](...args); } catch (e) { console.error(name, e); toast("Něco se nepovedlo: " + (e.message || e)); return null; }
+}
+function openLink(name) { call("open_link", name); }
+
+// ---------------------------------------------------------------- navigace
+function go(page) {
+  if (!document.getElementById("page-" + page)) return;
+  S.page = page;
+  $$(".nav").forEach(b => b.classList.toggle("active", b.dataset.page === page));
+  $$(".page").forEach(p => p.classList.toggle("active", p.id === "page-" + page));
+  $("main").scrollTop = 0;
+  if (page === "stats") loadStats();
+  if (page === "settings") loadSettings();
+  if (page === "about") checkUpdate(false);
+}
+$$(".nav").forEach(b => b.addEventListener("click", () => go(b.dataset.page)));
+window.app = { go, refresh: () => refresh() };
+
+// ---------------------------------------------------------------- domů
+function renderState(st) {
+  S.state = st;
+  const game = st.game, disc = st.discord, paused = st.paused;
+  $("#dot-game").className = "dot " + (game ? "ok" : "");
+  $("#txt-game").textContent = game ? (st.hidden ? "Hra je schovaná" : "Dead by Daylight běží") : "Dead by Daylight neběží";
+  $("#dot-discord").className = "dot " + (disc ? "ok" : game ? "warn" : "");
+  $("#txt-discord").textContent = disc ? "Připojeno k Discordu" : (game ? "Discord neběží" : "Discord: čeká na hru");
+  $("#pause-btn").innerHTML = (paused ? ICON.play + "Obnovit status" : ICON.pause + "Pozastavit status");
+
+  $("#ic-game").innerHTML = ICON.game; $("#ic-game").style.color = game ? "var(--green)" : "var(--dim)";
+  $("#t-game").textContent = game ? (st.phase_text || "Běží") : "Neběží";
+  $("#ic-discord").innerHTML = ICON.discord; $("#ic-discord").style.color = disc ? "#8ea1ff" : "var(--dim)";
+  $("#t-discord").textContent = disc ? "Připojeno" : (game ? "Nepřipojeno" : "Čeká na hru");
+  $("#ic-share").innerHTML = paused ? ICON.eyeoff : ICON.eye; $("#ic-share").style.color = paused ? "var(--amber)" : (st.activity ? "var(--green)" : "var(--dim)");
+  $("#t-share").textContent = paused ? "Pozastaveno" : (st.activity && disc ? "Sdílí se" : "Nic se nesdílí");
+  $("#paused-note").classList.toggle("hidden", !paused);
+  $("#home-lead").textContent = st.status && st.status.text ? st.status.text : "Co se právě ukazuje v Discordu.";
+
+  $("#welcome").classList.toggle("hidden", !st.first_run);
+  const up = st.update;
+  $("#update-banner").classList.toggle("hidden", !(up && up.newer));
+  if (up && up.newer) $("#update-text").textContent = `Je tu nová verze ${up.latest} (máš ${st.version}).`;
+  $("#config-banner").classList.toggle("hidden", !st.config_error);
+  if (st.config_error) $("#config-text").textContent = "Soubor s nastavením má chybu, používám výchozí hodnoty: " + st.config_error;
+
+  renderDiscord(st.activity);
+  renderToday(st.today, st.recent || []);
+  if (st.goto) go(st.goto);
+}
+
+function renderDiscord(a) {
+  const dc = $("#dc");
+  if (!a) {
+    dc.classList.add("empty");
+    dc.innerHTML = `<div class="hdr">Hraje</div><div class="body"><div class="ph">${ICON.pad}</div>
+      <div><div class="name">Dead by Daylight</div><div class="line muted">Až zapneš hru, uvidíš tady, co ukazuje Discord.</div></div></div>`;
+    return;
+  }
+  dc.classList.remove("empty");
+  const large = a.large ? `<img class="large" src="${esc(a.large)}" title="${esc(a.large_text)}" onerror="this.style.visibility='hidden'">` : `<div class="ph">${ICON.pad}</div>`;
+  const small = a.small ? `<img class="smallimg" src="${esc(a.small)}" title="${esc(a.small_text)}" onerror="this.remove()">` : "";
+  dc.innerHTML = `<div class="hdr">Hraje</div><div class="body"><div class="imgs">${large}${small}</div><div style="min-width:0">
+    <div class="name">Dead by Daylight</div>
+    ${a.details ? `<div class="line">${esc(a.details)}</div>` : ""}
+    ${a.state ? `<div class="line">${esc(a.state)}</div>` : ""}
+    ${a.start ? `<div class="time">${ICON.pad}<span id="dc-time" data-start="${a.start}"></span></div>` : ""}
+    </div></div>`;
+  tickClock();
+}
+function tickClock() {
+  const el = $("#dc-time");
+  if (el) el.textContent = clock(Date.now() / 1000 - Number(el.dataset.start)) + " uplynulo";
+}
+
+function renderToday(t, recent) {
+  const n = t ? t.matches : 0;
+  $("#today-n").textContent = n;
+  $("#today-w").textContent = plural(n, "zápas", "zápasy", "zápasů");
+  $("#today-wins").textContent = t && t.decided ? `${t.wins} / ${t.decided}` : "–";
+  $("#today-time").textContent = dur(t ? t.seconds : 0);
+  $("#today-list").innerHTML = recent.length ? recent.map(m => `<li>${roleChip(m.role)}<span class="who">${esc(m.character || "postava neznámá")}${m.map ? ` <span class="muted">· ${esc(m.map)}</span>` : ""}</span>${resultChip(m)}</li>`).join("")
+    : `<li class="muted">Dnes zatím žádný zápas.</li>`;
+}
+
+async function refresh() {
+  const st = await call("state");
+  if (st) renderState(st);
+}
+async function firstRun(yes) { const st = await call("first_run_answer", yes); if (st) renderState(st); toast(yes ? "Spouštění se zapnutím Windows je zapnuté" : "Dobře, kdykoli to zapneš v Nastavení"); }
+$("#pause-btn").addEventListener("click", async () => {
+  const on = !(S.state && S.state.paused);
+  const st = await call("set_paused", on);
+  if (st) renderState(st);
+  toast(on ? "Status pozastaven, Discord teď nic neukazuje" : "Status zase běží");
+});
+
+// ---------------------------------------------------------------- statistiky
+function segInit(id, key) {
+  $$("#" + id + " button").forEach(b => b.addEventListener("click", () => {
+    $$("#" + id + " button").forEach(x => x.classList.toggle("on", x === b));
+    S[key] = b.dataset.v; loadStats();
+  }));
+}
+segInit("seg-period", "period"); segInit("seg-role", "role");
+
+async function loadStats() {
+  const d = await call("dashboard", S.period, S.role);
+  S.statsAt = Date.now();
+  if (d) renderStats(d);
+}
+const PERIOD_TXT = { today: "dnes", week: "tento týden", month: "tento měsíc", all: "celkem" };
+
+function renderStats(d) {
+  const el = $("#stats-body"), t = d.total;
+  if (!d.all_matches) {
+    el.innerHTML = `<div class="panel empty">${ICON.chart}<b>Zatím tu nic není</b>Odehraj zápas a statistiky se začnou plnit samy.</div>`;
+    return;
+  }
+  const cards = `<div class="grid g4">
+    <div class="panel card"><div class="k">Zápasy</div><div class="v">${t.matches}</div><div class="s">${PERIOD_TXT[d.period]}</div></div>
+    <div class="panel card"><div class="k">Výhry</div><div class="v">${pct(t.win_rate)}</div><div class="s">${t.wins} z ${t.decided} se známým výsledkem</div></div>
+    <div class="panel card"><div class="k">Odehráno</div><div class="v">${dur(t.seconds)}</div><div class="s">čistý čas v zápasech</div></div>
+    <div class="panel card"><div class="k">Průměrný zápas</div><div class="v">${dur(t.avg_seconds)}</div><div class="s">od karty s mapou po konec</div></div>
+  </div>`;
+  const chart = `<div class="grid g2" style="margin-top:14px">
+    <div class="panel chart"><div class="row" style="margin-bottom:8px"><b>Zápasy po dnech</b><span class="spacer"></span><span class="muted small">posledních ${d.days.length} dní</span></div>${chartSvg(d.days)}
+      <div class="legend"><span><i style="background:var(--green)"></i>výhry</span><span><i style="background:var(--red)"></i>prohry</span><span><i style="background:#4a4a52"></i>nezjištěno</span></div></div>
+    <div class="panel">${resultBars(d)}</div>
+  </div>`;
+  const chars = d.characters.length ? `<table><thead><tr><th class="l">Postava</th><th>Zápasy</th><th>Výhry</th><th>Čas</th></tr></thead><tbody>${d.characters.map(c => `
+      <tr><td class="l"><div class="who">${c.img ? `<img class="av" src="${esc(c.img)}" onerror="avFail(this,'${initials(c.name)}')">` : `<div class="av">${initials(c.name)}</div>`}<span>${esc(c.name === "?" ? "postava neznámá" : c.name)}</span></div></td>
+      <td>${c.matches}</td><td>${pct(c.win_rate)}</td><td>${durShort(c.seconds)}</td></tr>`).join("")}</tbody></table>` : `<div class="muted">Žádné zápasy.</div>`;
+  const maps = d.maps.length ? `<table><thead><tr><th class="l">Mapa</th><th>Zápasy</th><th>Výhry</th><th>Průměr</th></tr></thead><tbody>${d.maps.map(m => `
+      <tr><td class="l">${esc(m.name || "nepřečtená")}${m.realm ? `<div class="muted small">${esc(m.realm)}</div>` : ""}</td>
+      <td>${m.matches}</td><td>${pct(m.win_rate)}</td><td>${durShort(m.avg_seconds)}</td></tr>`).join("")}</tbody></table>` : `<div class="muted">Žádné zápasy.</div>`;
+  const recent = d.recent.length ? `<table><thead><tr><th class="l">Kdy</th><th class="l">Postava</th><th class="l">Mapa</th><th>Délka</th><th>Výsledek</th><th></th></tr></thead><tbody>${d.recent.map(m => `
+      <tr data-id="${m.id}"><td class="l muted">${esc(m.when)}</td><td class="l">${roleChip(m.role)} ${esc(m.character || "postava neznámá")}${m.base ? ` <span class="muted">(${esc(m.base)})</span>` : ""}</td>
+      <td class="l">${esc(m.map || "–")}</td><td>${dur(m.duration)}</td><td>${resultChip(m)}</td>
+      <td style="width:1%">${S.confirm === m.id ? `<span class="confirm">Smazat? <button class="yes" onclick="delMatch(${m.id})">Ano</button><button class="no" onclick="askDel(null)">Ne</button></span>`
+        : `<button class="del" title="Smazat zápas (třeba když se rozpoznal špatně)" onclick="askDel(${m.id})">${ICON.trash}</button>`}</td></tr>`).join("")}</tbody></table>`
+    : `<div class="muted">V tomhle období žádné zápasy.</div>`;
+  el.innerHTML = cards + chart +
+    `<div class="grid tables" style="margin-top:14px"><div class="panel"><b>Postavy</b><div style="margin-top:10px">${chars}</div></div>
+     <div class="panel"><b>Mapy</b><div style="margin-top:10px">${maps}</div></div></div>
+     <h2>Zápasy</h2><div class="panel">${recent}</div>`;
+}
+
+function chartSvg(days) {
+  const W = 560, H = 170, top = 10, bottom = 24, n = days.length, gap = n > 10 ? 3 : 10;
+  const max = Math.max(1, ...days.map(d => d.matches));
+  const bw = (W - gap * (n - 1)) / n, ch = H - top - bottom;
+  let out = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
+  for (let i = 0; i <= 2; i++) { const y = top + ch * i / 2; out += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="#25252b" stroke-width="1"/>`; }
+  days.forEach((d, i) => {
+    const x = i * (bw + gap); let y = top + ch;
+    const seg = (v, c) => { if (!v) return ""; const h = ch * v / max; y -= h; return `<rect x="${x}" y="${y}" width="${bw}" height="${h}" rx="2" fill="${c}"/>`; };
+    out += `<g><title>${esc(d.label)} · ${d.matches} ${plural(d.matches, "zápas", "zápasy", "zápasů")}, ${d.wins} ${plural(d.wins, "výhra", "výhry", "výher")}</title>`
+      + `<rect x="${x}" y="${top}" width="${bw}" height="${ch}" fill="transparent"/>`
+      + seg(d.wins, "#4fcf85") + seg(d.losses, "#d6293e") + seg(d.unknown, "#4a4a52") + `</g>`;
+    if (n <= 10 || (n - 1 - i) % 5 === 0)
+      out += `<text x="${x + bw / 2}" y="${H - 6}" fill="#8f8c88" font-size="11" text-anchor="middle">${esc(n <= 10 ? d.label : d.label.split(" ")[1])}</text>`;
+  });
+  return out + `</svg>`;
+}
+
+function resultBars(d) {
+  const rows = [];
+  const add = (title, tally, items) => {
+    if (!tally.matches) return;
+    rows.push(`<div class="row" style="margin:${rows.length ? 16 : 0}px 0 10px"><b>${title}</b><span class="spacer"></span><span class="muted small">${tally.matches} ${plural(tally.matches, "zápas", "zápasy", "zápasů")}</span></div><div class="bars">`
+      + items.map(([k, label, color]) => {
+        const v = tally.results[k] || 0, p = Math.round(100 * v / tally.matches);
+        return `<div class="bar"><span>${label}</span><div class="track"><div class="fill" style="width:${p}%;background:${color}"></div></div><span class="n">${v}</span></div>`;
+      }).join("") + `</div>`);
+  };
+  if (d.role !== KILLER) add("Survivor", d.survivor, [["escaped", "Útěk", "#4fcf85"], ["sacrificed", "Obětování", "#d6293e"], ["killed", "Smrt", "#a81d2f"], ["left", "Odpojení", "#6c6a66"], ["?", "Nezjištěno", "#4a4a52"]]);
+  if (d.role !== SURVIVOR) add("Killer", d.killer, [["k4", "4 zabití", "#4fcf85"], ["k3", "3 zabití", "#8fdcae"], ["k2", "2 zabití", "#f0a030"], ["k01", "0–1 zabití", "#d6293e"], ["left", "Odpojení", "#6c6a66"], ["?", "Nezjištěno", "#4a4a52"]]);
+  return rows.length ? rows.join("") : `<div class="muted">V tomhle období žádné zápasy.</div>`;
+}
+function askDel(id) { S.confirm = id; loadStats(); }
+async function delMatch(id) { S.confirm = null; const r = await call("delete_match", id); toast(r && r.ok ? "Zápas smazán" : "Zápas se nepodařilo smazat"); loadStats(); refresh(); }
+async function exportCsv() {
+  const r = await call("export_csv");
+  if (r && r.ok) toast("Uloženo: " + r.path); else if (r && r.error) toast(r.error);
+}
+
+// ---------------------------------------------------------------- nastavení
+async function loadSettings() {
+  const d = await call("settings");
+  if (!d) return;
+  S.settings = d;
+  const v = d.values;
+  const ctl = it => {
+    const val = v[it.key];
+    if (it.type === "bool") return `<label class="sw"><input type="checkbox" data-k="${it.key}" ${val ? "checked" : ""}><span></span></label>`;
+    if (it.type === "select") return `<select data-k="${it.key}">${it.options.map(([o, l]) => `<option value="${esc(o)}" ${String(val) === o ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
+    if (it.type === "int") return `<input type="number" data-k="${it.key}" min="${it.min}" max="${it.max}" value="${esc(val)}">`;
+    return `<input type="text" data-k="${it.key}" value="${esc(val)}" maxlength="${it.max || 100}" ${it.placeholder ? `placeholder="${esc(it.placeholder)}"` : ""} spellcheck="false">`;
+  };
+  const sect = (s, idx) => `<h2 class="sect-h ${s.advanced ? "toggle" : ""}" ${s.advanced ? `data-adv="${idx}"` : ""}>${s.advanced ? ICON.chev : ""}${esc(s.title)}</h2>
+    <div class="panel ${s.advanced ? "hidden" : ""}" id="sect-${idx}">${s.items.map(it => `<div class="set"><div class="t"><b>${esc(it.label)}</b>${it.hint ? `<span>${esc(it.hint)}</span>` : ""}</div>${ctl(it)}</div>`).join("")}
+    ${s.title === "Statistiky" ? `<div class="set"><div class="t"><b>Smazat všechny statistiky</b><span>Nejde vrátit zpátky.</span></div><button class="btn danger" id="clear-stats">Smazat</button></div>` : ""}</div>`;
+  const sections = d.sections.map(sect);
+  sections.splice(1, 0, `<h2>Spouštění</h2><div class="panel"><div class="set"><div class="t"><b>Spouštět se zapnutím Windows</b><span>Na pozadí s ikonkou u hodin, okno se samo neotevře.</span></div>
+    <label class="sw"><input type="checkbox" id="autostart" ${d.autostart ? "checked" : ""}><span></span></label></div></div>`);
+  $("#settings-body").innerHTML = sections.join("") + `<div class="row" style="margin-top:22px"><button class="btn" onclick="call('open_item','config')">Otevřít soubor s nastavením</button>
+    <span class="spacer"></span><button class="btn ghost" id="reset-settings">Obnovit výchozí</button></div>`;
+
+  $$("#settings-body [data-k]").forEach(el => {
+    const ev = el.type === "text" ? "change" : "input";
+    el.addEventListener(ev, () => queueSave(el));
+    if (el.type === "text") el.addEventListener("keydown", e => { if (e.key === "Enter") el.blur(); });
+  });
+  $$("#settings-body [data-adv]").forEach(h => h.addEventListener("click", () => {
+    h.classList.toggle("open"); $("#sect-" + h.dataset.adv).classList.toggle("hidden");
+  }));
+  $("#autostart").addEventListener("change", async e => {
+    const r = await call("set_autostart", e.target.checked);
+    if (r) { e.target.checked = r.on; toast(r.ok ? (r.on ? "Spouštění se zapnutím Windows zapnuto" : "Spouštění se zapnutím Windows vypnuto") : "Nepovedlo se: " + r.info); }
+  });
+  const clr = $("#clear-stats");
+  if (clr) clr.addEventListener("click", async () => {
+    if (clr.dataset.sure !== "1") { clr.dataset.sure = "1"; clr.textContent = "Opravdu smazat?"; return; }
+    await call("clear_stats"); clr.dataset.sure = ""; clr.textContent = "Smazat"; toast("Statistiky smazány"); refresh();
+  });
+  const rs = $("#reset-settings");
+  rs.addEventListener("click", async () => {
+    if (rs.dataset.sure !== "1") { rs.dataset.sure = "1"; rs.textContent = "Opravdu obnovit?"; return; }
+    await call("reset_settings"); toast("Nastavení obnoveno"); loadSettings();
+  });
+}
+const pending = {};
+function queueSave(el) {
+  const it = S.settings.sections.flatMap(s => s.items).find(i => i.key === el.dataset.k);
+  let val = el.type === "checkbox" ? el.checked : el.value;
+  if (it && it.type === "int") val = Number(val);
+  if (it && it.pattern && val && !new RegExp(it.pattern).test(val)) { el.classList.add("bad"); toast(it.bad || "Neplatná hodnota"); return; }
+  el.classList.remove("bad");
+  pending[el.dataset.k] = val;
+  clearTimeout(S.timers.save);
+  S.timers.save = setTimeout(async () => {
+    const values = Object.assign({}, pending); for (const k in pending) delete pending[k];
+    const r = await call("save_settings", values);
+    if (r && r.ok) toast("Uloženo"); else if (r) toast(r.error || "Nepovedlo se uložit");
+  }, 500);
+}
+
+// ---------------------------------------------------------------- o aplikaci
+async function checkUpdate(force) {
+  const box = $("#upd-result"), btn = $("#upd-btn");
+  if (force) { btn.disabled = true; box.textContent = "Zjišťuji…"; box.className = "small muted"; }
+  const r = await call("check_update", !!force);
+  btn.disabled = false;
+  if (!r) return;
+  if (r.error) { if (force) { box.textContent = r.error; box.className = "small muted"; } return; }
+  if (r.newer) { box.innerHTML = `Je tu nová verze <b>${esc(r.latest)}</b>. <a href="#" onclick="openLink('vydani');return false" style="color:#7fb4ff">Stáhnout</a>`; box.className = "small"; }
+  else { box.textContent = "Máš nejnovější verzi."; box.className = "small muted"; }
+}
+function quitApp() { call("quit"); }
+
+// ---------------------------------------------------------------- start
+function start() {
+  refresh();
+  S.timers.poll = setInterval(() => { if (!document.hidden) refresh(); }, 1000);
+  S.timers.clock = setInterval(tickClock, 1000);
+  S.timers.stats = setInterval(() => { if (S.page === "stats" && !document.hidden && Date.now() - S.statsAt > 15000 && S.confirm === null) loadStats(); }, 5000);
+  setTimeout(() => checkUpdate(false), 1500);
+}
+if (api()) start(); else window.addEventListener("pywebviewready", start, { once: true });
+</script>
+</body>
+</html>

@@ -27,9 +27,10 @@ Rotten Fields (Coldwind Farm)
 1. Stáhni `DbD-Rich-Presence.exe` a dej ho, kam chceš (třeba do Dokumentů).
 2. Spusť ho. Když Windows ukáže *„Systém Windows ochránil počítač“*, klikni na
    **Další informace → Přesto spustit** (program není podepsaný placeným certifikátem, viz níž).
-3. Na otázku, jestli se má spouštět se zapnutím Windows, dej **Ano**.
+3. Otevře se okno aplikace. Na stránce Domů potvrď **spouštění se zapnutím Windows**.
 
-Hotovo. Program běží na pozadí s ikonkou vpravo dole u hodin a sám počká, až zapneš hru.
+Hotovo. Okno můžeš zavřít: aplikace běží dál na pozadí s ikonkou vpravo dole u hodin a sama
+počká, až zapneš hru. Kliknutím na ikonku se okno zase otevře.
 Ve hře nastav **Windowed Fullscreen** a angličtinu, v Discordu musí být zapnuté
 **Sdílet svou aktivitu**. Podrobnosti jsou v **[NAVOD.md](NAVOD.md)**.
 
@@ -37,9 +38,11 @@ Ve hře nastav **Windowed Fullscreen** a angličtinu, v Discordu musí být zapn
 
 - postava včetně legendárních skinů (Rize Kamishiro = The Ghoul), mapa a čas zápasu
 - velký portrét postavy a malá ikona mapy, v lobby místo ní odznak prestige
+- **aplikace s oknem**: živý náhled toho, co vidí kamarádi v Discordu, statistiky s grafy,
+  nastavení přepínači, kontrola aktualizací; zavřením se schová do ikonky u hodin
 - **statistiky**: počítá zápasy, útěky a zabití; v Discordu ukáže třeba „Dnes 4 zápasy · 3 výhry“
-  a po zápase výsledek, v menu ikonky je přehled podle postav a map
-- běh na pozadí bez okna, spouštění se zapnutím Windows, nastavení z menu ikonky
+  a po zápase výsledek; v okně přehled podle postav, map a dnů, export do Excelu
+- běh na pozadí, spouštění se zapnutím Windows, status jde kdykoli pozastavit
 - nové postavy, mapy a skiny si sám jednou denně doplní z [DbD wiki](https://deadbydaylight.wiki.gg)
 
 ## Je to bezpečné?
@@ -50,9 +53,9 @@ Celý program je **open source**: všechno, co dělá, je v tomhle repozitáři 
   (stejně jako OBS nebo Discord při streamování) a text z něj čte OCR **přímo u tebe v počítači**.
   Není to mod ani cheat, hra o něm vůbec neví.
 - **Nic neodesílá.** Žádná telemetrie ani screenshoty na internet. Statistiky zápasů zůstávají
-  jen u tebe v počítači. Připojuje se jen k Discordu
-  (status), k veřejnému seznamu obrázků Discord aplikace a nejvýš 1× denně na DbD wiki.
-  Úplný seznam je v [SECURITY.md](SECURITY.md).
+  jen u tebe v počítači. Připojuje se jen k Discordu (status), k veřejnému seznamu obrázků
+  Discord aplikace, nejvýš 1× denně na DbD wiki a s otevřeným oknem na GitHub kvůli
+  aktualizacím. Úplný seznam je v [SECURITY.md](SECURITY.md).
 - **Nepotřebuje správce.** Do systému zapíše jen hodnotu pro spuštění se zapnutím Windows
   (to samé místo, které používá Discord nebo Steam) a jde to vypnout v menu ikonky.
 - **`.exe` nikdo nesestavuje ručně.** Vyrábí ho [GitHub Actions](../../actions) z kódu v tomhle
@@ -85,7 +88,8 @@ okno hry ──snímek──> OCR (RapidOCR, offline) ──text──> rozpozn�
 | Soubor | Co dělá |
 |---|---|
 | `app/main.py` | vstupní bod (`.exe` i zdrojáky) |
-| `app/pozadi.py` | ikonka u hodin, menu, první spuštění, `--self-test` |
+| `app/pozadi.py` | aplikace: běh na pozadí + ikonka u hodin + okno, `--self-test` |
+| `app/okno.py`, `app/ui/index.html` | okno aplikace (pywebview + Edge WebView2): domů, statistiky, nastavení |
 | `app/runner.py` | hlavní smyčka: čeká na hru, načte OCR, po zavření hry ho zase uvolní |
 | `app/capture.py` | najde okno Dead by Daylight a vyfotí ho (dxcam / mss) |
 | `app/ocr.py` | čtení textu z výřezu obrazovky (RapidOCR + onnxruntime na CPU) |
@@ -136,14 +140,15 @@ Složka `assets/` obsahuje obrázky k nahrání do Art Assets vlastní Discord a
 
 **DbD Rich Presence** shows what you are doing in *Dead by Daylight* as your Discord status:
 your killer or survivor (including legendary skins), the map, match time and prestige in the lobby.
-It also keeps local match statistics (escapes, kills, matches per character and map).
+It also keeps local match statistics (escapes, kills, matches per character and map) and has an app
+window with a live status preview, charts and settings (rendered by Edge WebView2).
 
 - Download **[DbD-Rich-Presence.exe](https://github.com/TomasLinka1234/DBD-Rich-Presence/releases/latest/download/DbD-Rich-Presence.exe)**
   and run it. It lives in the system tray and waits for the game.
 - It only **takes screenshots of the game window** and reads them with **local OCR**. It does not read
   game memory, modify files or inject anything; it is not a mod or a cheat.
 - **No telemetry.** Network access is limited to Discord, Discord's public asset list for the app,
-  and the DbD wiki at most once a day. See [SECURITY.md](SECURITY.md) (Czech, with tables).
+  the DbD wiki at most once a day and, while the window is open, GitHub's release API for updates. See [SECURITY.md](SECURITY.md) (Czech, with tables).
 - The `.exe` is built by **GitHub Actions** from this repository, after the tests pass. Each release
   lists its SHA256, commit and build log, and has a signed build provenance attestation:
   `gh attestation verify DbD-Rich-Presence.exe --repo TomasLinka1234/DBD-Rich-Presence`.

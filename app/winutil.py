@@ -10,6 +10,8 @@ import sys
 IS_WINDOWS = os.name == "nt"
 MUTEX_NAME = "Local\\DbDRichPresence"
 QUIT_EVENT_NAME = "Local\\DbDRichPresenceQuit"
+SHOW_EVENT_NAME = "Local\\DbDRichPresenceShow"
+WEBVIEW2_GUID = "{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
 
 ERROR_ALREADY_EXISTS = 183
 EVENT_MODIFY_STATE = 0x0002
@@ -95,6 +97,10 @@ class QuitSignal:
 
 def ask_running_instance_to_quit(name: str = QUIT_EVENT_NAME) -> bool:
     """True = nějaký program na pozadí běžel a dostal pokyn skončit."""
+    return _fire(name)
+
+
+def _fire(name: str) -> bool:
     if not IS_WINDOWS:
         return False
     h = _k32.OpenEventW(EVENT_MODIFY_STATE | SYNCHRONIZE, False, name)
@@ -104,6 +110,55 @@ def ask_running_instance_to_quit(name: str = QUIT_EVENT_NAME) -> bool:
         return bool(_k32.SetEvent(h))
     finally:
         _k32.CloseHandle(h)
+
+
+class ShowSignal:
+    """Pojmenovaná událost: druhé spuštění programu řekne běžící kopii, ať ukáže okno."""
+
+    def __init__(self, name: str = SHOW_EVENT_NAME) -> None:
+        self.handle = _k32.CreateEventW(None, False, False, name) if IS_WINDOWS else None
+
+    def wait(self, timeout: float) -> bool:
+        """True = někdo chce okno. Mimo Windows jen počká."""
+        if not self.handle:
+            import time
+
+            time.sleep(timeout)
+            return False
+        return _k32.WaitForSingleObject(self.handle, int(timeout * 1000)) == WAIT_OBJECT_0
+
+    def close(self) -> None:
+        if self.handle:
+            _k32.CloseHandle(self.handle)
+            self.handle = None
+
+
+def ask_running_instance_to_show(name: str = SHOW_EVENT_NAME) -> bool:
+    """True = běžící kopie dostala pokyn ukázat okno."""
+    return _fire(name)
+
+
+def webview2_version() -> str | None:
+    """Verze Microsoft Edge WebView2 Runtime (vykresluje okno aplikace), nebo None.
+    Ve Windows 11 je vždycky, ve Windows 10 se instaluje s Edgem."""
+    if not IS_WINDOWS:
+        return None
+    import winreg
+
+    places = (
+        (winreg.HKEY_LOCAL_MACHINE, rf"SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{WEBVIEW2_GUID}"),
+        (winreg.HKEY_LOCAL_MACHINE, rf"SOFTWARE\Microsoft\EdgeUpdate\Clients\{WEBVIEW2_GUID}"),
+        (winreg.HKEY_CURRENT_USER, rf"Software\Microsoft\EdgeUpdate\Clients\{WEBVIEW2_GUID}"),
+    )
+    for root, path in places:
+        try:
+            with winreg.OpenKey(root, path) as k:
+                value, _ = winreg.QueryValueEx(k, "pv")
+            if value and str(value) != "0.0.0.0":
+                return str(value)
+        except OSError:
+            continue
+    return None
 
 
 def message_box(text: str, title: str = "DbD Rich Presence", error: bool = False) -> None:

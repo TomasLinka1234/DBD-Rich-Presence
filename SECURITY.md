@@ -19,9 +19,13 @@
 | Discord na tvém počítači (místní roura `discord-ipc`) | nastavení statusu |
 | `discord.com/api/.../applications/<id>/assets` | seznam obrázků nahraných v Discord aplikaci (veřejný, bez přihlášení) |
 | `deadbydaylight.wiki.gg` | nejvýš 1× denně seznam nových postav/map, odkazy na portréty |
+| `api.github.com` | jestli je na GitHubu novější verze (když je otevřené okno, nejvýš jednou za 6 hodin, nebo tlačítkem) |
 
-Program sám nic jiného nestahuje. Odkazy na obrázky (portréty z wiki, případně `placehold.co`
-s číslem prestige, když chybí odznak) jen předá Discordu jako součást statusu a ten si je načte.
+Odkazy na obrázky (portréty z wiki, odznaky z Discordu, případně `placehold.co` s číslem
+prestige, když chybí odznak) program předá Discordu jako součást statusu. Okno aplikace stejné
+obrázky načte i pro náhled statusu a tabulku postav. Okno vykresluje Microsoft Edge WebView2,
+stránka je přibalená v programu (nic se nestahuje) a mluví jen s programem samotným, žádný
+server se nespouští. Aktualizace se nestahují samy: okno jen nabídne odkaz na nové vydání.
 
 Nic jiného se nikam neposílá. Žádný přihlašovací token, žádné screenshoty.
 Všechno je vidět ve zdrojovém kódu (`app/images.py`, `app/wiki_data.py`, `app/presence.py`).
