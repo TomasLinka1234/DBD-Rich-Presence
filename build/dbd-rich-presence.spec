@@ -39,7 +39,7 @@ else:
         ],
     )
 
-datas = [(os.path.join(APP, f), "app") for f in ("dbd_data.json", "ikona.png", "ikona.ico")]
+datas = [(os.path.join(APP, f), "app") for f in ("dbd_data.json", "ikona.png", "ikona_mala.png", "ikona.ico")]
 datas += [(os.path.join(APP, "ui", "index.html"), os.path.join("app", "ui"))]     # vzhled okna aplikace
 datas += collect_data_files("rapidocr", excludes=["**/pytorch/**"])
 

@@ -22,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from paths import CONFIG, DATA, FROZEN, ICON_PNG, LOG_FILE, ensure_data_dir  # noqa: E402
+from paths import CONFIG, DATA, FROZEN, ICON_PNG, ICON_SMALL, LOG_FILE, ensure_data_dir  # noqa: E402
 
 log = logging.getLogger("dbd")
 
@@ -37,11 +37,12 @@ def fix_streams() -> None:
 
 
 def icon_image(kind: str, size: int = 64):
-    """Logo programu (generátor v červeném kruhu) s barevnou tečkou stavu vpravo dole."""
+    """Logo programu (hák v mlze; v malé velikosti zjednodušený) s barevnou tečkou stavu vpravo dole."""
     from PIL import Image, ImageDraw
 
     try:
-        img = Image.open(ICON_PNG).convert("RGBA").resize((size, size), Image.LANCZOS)
+        src = ICON_SMALL if ICON_SMALL.exists() else ICON_PNG
+        img = Image.open(src).convert("RGBA").resize((size, size), Image.LANCZOS)
     except Exception:
         img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
         ImageDraw.Draw(img).ellipse((2, 2, size - 3, size - 3), fill=(40, 12, 14, 255), outline=(178, 22, 32, 255), width=5)

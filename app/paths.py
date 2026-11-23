@@ -22,6 +22,7 @@ else:
 
 BUILTIN_DATA = RES / "dbd_data.json"
 ICON_PNG = RES / "ikona.png"
+ICON_SMALL = RES / "ikona_mala.png"   # zjednodušená ikona pro oblast u hodin (16-32 px)
 ICON_ICO = RES / "ikona.ico"
 
 

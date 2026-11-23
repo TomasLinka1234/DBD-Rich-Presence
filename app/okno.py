@@ -363,11 +363,39 @@ class Api:
 # ----------------------------------------------------------------- okno
 def build_html() -> str:
     html = UI_FILE.read_text(encoding="utf-8")
+    return html.replace("{{LOGO}}", _logo_data_uri()).replace("{{VERSION}}", VERSION)
+
+
+def _logo_data_uri(size: int = 160) -> str:
+    """Logo zmenšené pro okno (stránka se předává jako text a velký obrázek by ji zbytečně nafoukl)."""
     try:
-        logo = "data:image/png;base64," + base64.b64encode(ICON_PNG.read_bytes()).decode("ascii")
-    except OSError:
-        logo = ""
-    return html.replace("{{LOGO}}", logo).replace("{{VERSION}}", VERSION)
+        import io
+
+        from PIL import Image
+
+        buf = io.BytesIO()
+        Image.open(ICON_PNG).convert("RGBA").resize((size, size), Image.LANCZOS).save(buf, "PNG", optimize=True)
+        data = buf.getvalue()
+    except Exception:
+        try:
+            data = ICON_PNG.read_bytes()
+        except OSError:
+            return ""
+    return "data:image/png;base64," + base64.b64encode(data).decode("ascii")
+
+
+def _dark_title_bar(window) -> None:
+    """Tmavý horní pruh okna i při světlém motivu Windows (celá aplikace je tmavá)."""
+    try:
+        import ctypes
+
+        hwnd = int(window.native.Handle.ToInt32())
+        dwm = ctypes.windll.dwmapi
+        for attr, value in ((20, 1), (35, 0x00100E0E), (36, 0x00E8EBEC)):   # tmavý režim, barva pruhu, barva textu
+            v = ctypes.c_int(value)
+            dwm.DwmSetWindowAttribute(hwnd, attr, ctypes.byref(v), ctypes.sizeof(v))
+    except Exception:
+        log.debug("Tmavý pruh okna nejde nastavit", exc_info=True)
 
 
 def available() -> tuple[bool, str]:
@@ -394,6 +422,8 @@ def run_window(app, hidden: bool) -> None:
         min_size=MIN_SIZE, hidden=hidden, background_color="#0e0e10", text_select=False)
     app.window = window
     window.events.closing += app.on_window_closing
+    if os.name == "nt":
+        window.events.before_show += _dark_title_bar
     storage = DATA / "okno"
     storage.mkdir(parents=True, exist_ok=True)
     webview.start(gui=os.environ.get("DBD_RP_GUI", "edgechromium"), private_mode=False, storage_path=str(storage),

@@ -1,65 +1,53 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
-    <radialGradient id="bg" cx="50%" cy="42%" r="60%">
-      <stop offset="0" stop-color="#3d1218"/>
-      <stop offset="1" stop-color="#120809"/>
+    <radialGradient id="bg" cx="50%" cy="70%" r="75%">
+      <stop offset="0" stop-color="#5a0b12"/><stop offset=".45" stop-color="#22090c"/><stop offset="1" stop-color="#070506"/>
     </radialGradient>
-    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#b9bec5"/>
-      <stop offset="0.55" stop-color="#7d838c"/>
-      <stop offset="1" stop-color="#555a62"/>
+    <filter id="fog" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.006 0.011" numOctaves="4" seed="7"/>
+      <feColorMatrix values="0 0 0 0 0.55  0 0 0 0 0.47  0 0 0 0 0.47  0 0 0 0.42 -0.16"/>
+    </filter>
+    <filter id="rust" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="3" seed="3"/>
+      <feColorMatrix values="0 0 0 0 0.42  0 0 0 0 0.16  0 0 0 0 0.07  0 0 0 1.4 -0.55"/>
+    </filter>
+    <linearGradient id="iron" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6d6560"/><stop offset=".3" stop-color="#f1ebe4"/><stop offset=".6" stop-color="#b3aaa2"/><stop offset="1" stop-color="#4b4440"/>
     </linearGradient>
-    <linearGradient id="piston" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#6b7179"/>
-      <stop offset="0.45" stop-color="#d2d6db"/>
-      <stop offset="1" stop-color="#6b7179"/>
-    </linearGradient>
-    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0" stop-color="#ffe27a" stop-opacity="0.95"/>
-      <stop offset="0.45" stop-color="#ffb52e" stop-opacity="0.45"/>
-      <stop offset="1" stop-color="#ff9a1f" stop-opacity="0"/>
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ff1f35" stop-opacity=".9"/><stop offset="1" stop-color="#ff2236" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="bulb" cx="40%" cy="35%" r="65%">
-      <stop offset="0" stop-color="#fffbe0"/>
-      <stop offset="0.5" stop-color="#ffd94a"/>
-      <stop offset="1" stop-color="#e89a12"/>
-    </radialGradient>
-    <clipPath id="inner"><circle cx="512" cy="512" r="452"/></clipPath>
+    <clipPath id="tile"><rect x="40" y="40" width="944" height="944" rx="150"/></clipPath>
+    <path id="hook" d="M528 318 L604 318 L604 566 C604 712 524 792 430 792 C334 792 262 718 254 612 L240 446 L318 560 C326 650 368 716 432 716 C494 716 528 666 528 572 Z"/>
+    <clipPath id="hookclip"><use href="#hook"/></clipPath>
   </defs>
-  <circle cx="512" cy="512" r="508" fill="#170b0d"/>
-  <circle cx="512" cy="512" r="470" fill="url(#bg)"/>
-  <circle cx="512" cy="512" r="470" fill="none" stroke="#b3141f" stroke-width="36"/>
-  <g clip-path="url(#inner)">
-    <!-- glow behind the bulb -->
-    <circle cx="512" cy="300" r="190" fill="url(#glow)"/>
-    <!-- pistons -->
-    <rect x="318" y="350" width="104" height="150" rx="14" fill="url(#piston)" stroke="#1b1c1f" stroke-width="14"/>
-    <ellipse cx="370" cy="350" rx="52" ry="18" fill="#c9cdd2" stroke="#1b1c1f" stroke-width="12"/>
-    <rect x="602" y="390" width="104" height="110" rx="14" fill="url(#piston)" stroke="#1b1c1f" stroke-width="14"/>
-    <ellipse cx="654" cy="390" rx="52" ry="18" fill="#c9cdd2" stroke="#1b1c1f" stroke-width="12"/>
-    <!-- bulb on a stalk -->
-    <rect x="496" y="330" width="32" height="150" fill="#3a3e45" stroke="#1b1c1f" stroke-width="10"/>
-    <circle cx="512" cy="300" r="62" fill="url(#bulb)" stroke="#1b1c1f" stroke-width="14"/>
-    <!-- body -->
-    <rect x="250" y="480" width="524" height="300" rx="34" fill="url(#metal)" stroke="#1b1c1f" stroke-width="16"/>
-    <rect x="300" y="530" width="424" height="168" rx="16" fill="#33373e" stroke="#1b1c1f" stroke-width="12"/>
-    <g stroke="#79808a" stroke-width="18" stroke-linecap="round">
-      <line x1="338" y1="568" x2="686" y2="568"/>
-      <line x1="338" y1="614" x2="686" y2="614"/>
-      <line x1="338" y1="660" x2="686" y2="660"/>
+  <g clip-path="url(#tile)">
+    <rect width="1024" height="1024" fill="url(#bg)"/>
+    <rect width="1024" height="1024" filter="url(#fog)"/>
+    <circle cx="450" cy="560" r="380" fill="url(#halo)"/>
+    <!-- trny Entity zespodu -->
+    <g fill="#050304">
+      <path d="M40 1000 C90 820 170 700 330 610 C230 720 180 840 170 1000 Z"/>
+      <path d="M150 1000 C210 880 280 800 400 760 C320 830 280 900 270 1000 Z"/>
+      <path d="M990 1000 C930 800 850 690 700 600 C800 710 840 840 850 1000 Z"/>
+      <path d="M880 1000 C830 890 760 820 650 790 C720 850 750 920 760 1000 Z"/>
+      <path d="M40 300 C120 330 190 400 230 500 C170 430 110 400 40 390 Z"/>
+      <path d="M984 260 C900 300 840 370 810 470 C860 400 920 370 984 360 Z"/>
     </g>
-    <g fill="#2a2d33">
-      <circle cx="286" cy="516" r="11"/><circle cx="738" cy="516" r="11"/>
-      <circle cx="286" cy="744" r="11"/><circle cx="738" cy="744" r="11"/>
-    </g>
-    <!-- feet -->
-    <rect x="292" y="772" width="110" height="44" rx="10" fill="#2b2e34" stroke="#1b1c1f" stroke-width="12"/>
-    <rect x="622" y="772" width="110" height="44" rx="10" fill="#2b2e34" stroke="#1b1c1f" stroke-width="12"/>
-    <!-- sparks -->
-    <g fill="#ffd23f" stroke="#7a3f00" stroke-width="8" stroke-linejoin="round">
-      <polygon points="214,336 286,392 252,402 300,462 214,410 248,398"/>
-      <polygon points="812,316 742,382 776,392 728,450 814,398 780,386"/>
-      <polygon points="806,520 860,548 834,560 866,600 806,570 832,560"/>
+    <g fill="none" stroke="#a3101c" stroke-width="5" opacity=".8">
+      <path d="M330 610 C230 720 180 840 170 1000"/>
+      <path d="M700 600 C800 710 840 840 850 1000"/>
     </g>
   </g>
+  <!-- řetěz -->
+  <g fill="none" stroke="url(#iron)" stroke-linecap="round">
+    <ellipse cx="566" cy="252" rx="40" ry="62" stroke-width="30"/>
+    <ellipse cx="566" cy="142" rx="56" ry="36" stroke-width="30"/>
+  </g>
+  <!-- hák -->
+  <use href="#hook" fill="url(#iron)"/>
+  <rect width="1024" height="1024" filter="url(#rust)" clip-path="url(#hookclip)"/>
+  <use href="#hook" fill="none" stroke="#1a1513" stroke-width="10"/>
+  <path d="M604 330 L604 566 C604 712 524 792 430 792" fill="none" stroke="#ff3a4c" stroke-width="10" opacity=".55"/><path d="M250 470 C246 500 250 540 256 575 C262 545 262 510 250 470 Z" fill="#b01020" opacity=".9"/><circle cx="262" cy="640" r="11" fill="#b01020"/><path d="M262 629 C258 640 266 640 262 629 Z" fill="#b01020"/>
+  <rect x="40" y="40" width="944" height="944" rx="150" fill="none" stroke="#7d0c16" stroke-width="18"/>
 </svg>
