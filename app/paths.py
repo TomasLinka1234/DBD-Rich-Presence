@@ -40,6 +40,8 @@ LOG_FILE = DATA / "log.txt"
 STATE = DATA / "stav.json"
 IMAGE_CACHE = DATA / "obrazky_cache.json"
 WIKI_CACHE = DATA / "dbd_data_wiki.json"
+STATS = DATA / "zapasy.jsonl"
+STATS_HTML = DATA / "statistiky.html"
 DEBUG_DIR = DATA / "debug"
 UPLOADS = DATA / "obrazky_k_nahrani"
 

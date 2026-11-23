@@ -28,6 +28,7 @@ Barva tečky: **šedá** = čeká na hru, **zelená** = ukazuje se v Discordu,
 Pravým tlačítkem na ikonku:
 
 - nahoře je vidět, co program právě ukazuje v Discordu
+- **Statistiky**: otevře v prohlížeči přehled odehraných zápasů (viz níž)
 - **Nastavení**: otevře soubor s nastavením v Poznámkovém bloku; po uložení se samo načte
 - **Otevřít log**, **Otevřít složku s daty**
 - **Spouštět se zapnutím Windows** (zapnout / vypnout)
@@ -41,11 +42,30 @@ Pravým tlačítkem na ikonku:
 | lobby | postava · „V lobby“ / „Čeká na zápas“ · prestige |
 | načítání | postava · „Načítá se zápas“ |
 | **zápas** | **postava · mapa · čas od začátku zápasu** |
-| po zápase | postava · „Po zápase“ |
+| po zápase | postava · „Po zápase · Útěk“ / „Po zápase · 4 zabití“ |
+
+V menu a v lobby se status každých 20 sekund vystřídá s dnešními statistikami, třeba
+„Dnes 4 zápasy · 3 výhry“ (počítá se role, kterou zrovna hraješ). Po najetí myší na portrét
+je vidět i souhrn za postavu: „The Krasue · Prestige 6 · 23 zápasů · 14 výher“.
 
 Velký obrázek je portrét postavy, malý v rohu je v zápase ikona mapy a v lobby
 odznak prestige. **Prestige** se čte z odznaku vedle jména v menu postav (Characters)
 a ze scoreboardu po zápase; když se neukazuje, otevři v lobby na pár sekund záložku postav.
+
+## Statistiky
+
+Program si sám počítá každý odehraný zápas: postavu, mapu, délku a výsledek. Výsledek čte
+z obrazovky konce zápasu: u survivora **útěk / obětování / smrt**, u killera počet zabití podle
+nápisu (**Merciless Killer** = 4, **Ruthless** = 3, **Brutal** = 2, **The Entity Hungers…** = 0–1).
+**Výhra** = útěk, nebo aspoň 3 zabití za killera. Když se obrazovka konce nepřečte (odpojení,
+hra zavřená uprostřed zápasu), zápas se započítá s výsledkem „nezjištěno“ a do výher se nepočítá.
+
+Ikonka → **Statistiky** otevře přehled: dnes / tento týden / celkem, tabulky podle postav
+(útěky, 4K/3K/2K…, odehraný čas), mapy a posledních 30 zápasů. „Dnes“ začíná ve 4:00 ráno,
+takže noční hraní po půlnoci se počítá ještě ke včerejšku.
+
+Zápasy jsou jen u tebe v souboru `%APPDATA%\DbD Rich Presence\zapasy.jsonl` (jeden řádek
+= jeden zápas). Statistiky smažeš smazáním toho souboru.
 
 ## Nastavení
 
@@ -59,6 +79,8 @@ Ikonka → **Nastavení** (soubor `%APPDATA%\DbD Rich Presence\nastaveni.json`):
 | `jmeno_ve_hre` | tvoje jméno ve hře (program si ho jinak zjistí sám) |
 | `ukazat_zakladni_postavu` | `true` = u skinu ukázat i základní postavu: „Rize Kamishiro (The Ghoul)“ |
 | `ukazat_prestige`, `prestige_ikona` | prestige v textu / odznak v rohu obrázku |
+| `statistiky` | `true` = počítat odehrané zápasy (soubor `zapasy.jsonl`) |
+| `ukazat_statistiky` | `true` = ukazovat v Discordu dnešní zápasy, výsledek po zápase a souhrn za postavu |
 | `velky_obrazek` | `postava` = velký portrét + malá mapa; `mapa` = naopak |
 | `obrazky_z_wiki` | portréty a ikony map z DbD wiki |
 | `novinky_z_wiki` | jednou denně doplnit nové postavy, mapy a skiny z DbD wiki |
@@ -86,7 +108,7 @@ po menších dávkách).
 - **Hra se seká:** v nastavení dej `"vlakna_ocr": 1`.
 - **Špatně pozná postavu nebo mapu:** pošli screenshot ze hry a log.
 
-Všechna data programu (nastavení, log, stav) jsou v `%APPDATA%\DbD Rich Presence`.
+Všechna data programu (nastavení, log, stav, statistiky) jsou v `%APPDATA%\DbD Rich Presence`.
 **Odinstalace:** ikonka → odškrtni *Spouštět se zapnutím Windows* → *Ukončit*, pak smaž
 `DbD-Rich-Presence.exe` a tu složku s daty.
 

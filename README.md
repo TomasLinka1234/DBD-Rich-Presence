@@ -37,6 +37,8 @@ Ve hře nastav **Windowed Fullscreen** a angličtinu, v Discordu musí být zapn
 
 - postava včetně legendárních skinů (Rize Kamishiro = The Ghoul), mapa a čas zápasu
 - velký portrét postavy a malá ikona mapy, v lobby místo ní odznak prestige
+- **statistiky**: počítá zápasy, útěky a zabití; v Discordu ukáže třeba „Dnes 4 zápasy · 3 výhry“
+  a po zápase výsledek, v menu ikonky je přehled podle postav a map
 - běh na pozadí bez okna, spouštění se zapnutím Windows, nastavení z menu ikonky
 - nové postavy, mapy a skiny si sám jednou denně doplní z [DbD wiki](https://deadbydaylight.wiki.gg)
 
@@ -47,7 +49,8 @@ Celý program je **open source**: všechno, co dělá, je v tomhle repozitáři 
 - **Nesahá na hru.** Nečte její paměť, nemění soubory, nic do ní nevkládá. Jen fotí okno hry
   (stejně jako OBS nebo Discord při streamování) a text z něj čte OCR **přímo u tebe v počítači**.
   Není to mod ani cheat, hra o něm vůbec neví.
-- **Nic neodesílá.** Žádná telemetrie ani screenshoty na internet. Připojuje se jen k Discordu
+- **Nic neodesílá.** Žádná telemetrie ani screenshoty na internet. Statistiky zápasů zůstávají
+  jen u tebe v počítači. Připojuje se jen k Discordu
   (status), k veřejnému seznamu obrázků Discord aplikace a nejvýš 1× denně na DbD wiki.
   Úplný seznam je v [SECURITY.md](SECURITY.md).
 - **Nepotřebuje správce.** Do systému zapíše jen hodnotu pro spuštění se zapnutím Windows
@@ -88,6 +91,7 @@ okno hry ──snímek──> OCR (RapidOCR, offline) ──text──> rozpozn�
 | `app/ocr.py` | čtení textu z výřezu obrazovky (RapidOCR + onnxruntime na CPU) |
 | `app/detect.py` | které části obrazovky číst: tlačítko PLAY/READY, záhlaví s postavou, karta s mapou |
 | `app/tracker.py` | stav hry (menu → lobby → načítání → zápas → po zápase) |
+| `app/stats.py` | statistiky: výsledek z obrazovky konce, záznam zápasů, přehled v HTML |
 | `app/catalog.py` | porovnání přečteného textu se seznamem postav a map (rapidfuzz) |
 | `app/wiki_data.py` | jednou denně nové postavy/mapy/skiny z DbD wiki (čte Lua tabulky, nic nespouští) |
 | `app/images.py` | výběr obrázků pro Discord (portrét, ikona mapy, odznak prestige) |
@@ -132,6 +136,7 @@ Složka `assets/` obsahuje obrázky k nahrání do Art Assets vlastní Discord a
 
 **DbD Rich Presence** shows what you are doing in *Dead by Daylight* as your Discord status:
 your killer or survivor (including legendary skins), the map, match time and prestige in the lobby.
+It also keeps local match statistics (escapes, kills, matches per character and map).
 
 - Download **[DbD-Rich-Presence.exe](https://github.com/TomasLinka1234/DBD-Rich-Presence/releases/latest/download/DbD-Rich-Presence.exe)**
   and run it. It lives in the system tray and waits for the game.

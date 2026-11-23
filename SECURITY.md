@@ -6,6 +6,7 @@
 |---|---|
 | Čte obrazovku | ano, jen okno Dead by Daylight, a jen když hra běží. Text čte OCR **přímo v počítači** |
 | Ukládá screenshoty | ne (jen když si sám zapneš ukládání nebo ladění v nastavení, a to jen k tobě do `%APPDATA%\DbD Rich Presence`) |
+| Statistiky zápasů | jen u tebe v `zapasy.jsonl` (postava, mapa, délka, výsledek); nikam se neposílají, do Discordu jde jen krátký souhrn ve statusu (jde vypnout) |
 | Čte paměť hry, mění herní soubory, vkládá se do hry | **ne** |
 | Práva správce | ne, běží pod tvým účtem |
 | Zápis do systému | jen hodnota `DbD Rich Presence` v `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` (spouštění se zapnutím Windows, jde vypnout v menu) |

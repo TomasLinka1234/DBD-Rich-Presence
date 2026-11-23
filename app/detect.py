@@ -15,6 +15,7 @@ from rapidfuzz import fuzz
 
 from catalog import KILLER, SURVIVOR, Catalog, Character, MapMatch, compact, nice_case, norm, score
 from ocr import Line, Ocr
+from stats import result_from_texts
 
 
 @dataclass(frozen=True)
@@ -468,6 +469,7 @@ class Observation:
     match_hint: bool = False
     title: MapMatch | None = None
     end_kind: str | None = None
+    end_result: str | None = None      # escaped / sacrificed / killed / left / k4 / k3 / k2 / k01
     board: ScoreboardReading | None = None
     debug: dict[str, tuple[str, ...]] = field(default_factory=dict)
 
@@ -509,6 +511,8 @@ class Scanner:
         # (Když je vidět tlačítko lobby, konec zápasu to být nemůže.)
         if not lobby and self._due("end", now, 2.5 if ph == "MATCH" else 1.0) and end_gate(frame):
             obs.end_kind, obs.debug["end"] = read_end_screen(ocr, frame, now)
+            if obs.end_kind == "result":
+                obs.end_result = result_from_texts(obs.debug["end"])
 
         own = ctx.own_name
         if lobby or obs.end_kind == "scoreboard":
@@ -573,8 +577,9 @@ def read_everything(ocr: Ocr, frame: np.ndarray, catalog: Catalog, own_name: str
     m, _ = read_title_card(ocr, frame, catalog, strict=False)
     out["mapa"] = m.label() if m else None
     out["konec_zapasu_barva"] = end_gate(frame)
-    kind, _ = read_end_screen(ocr, frame)
+    kind, end_texts = read_end_screen(ocr, frame)
     out["konec_zapasu"] = kind
+    out["vysledek_zapasu"] = result_from_texts(end_texts) if kind == "result" else None
     if kind == "scoreboard":
         sb = read_scoreboard(ocr, frame, catalog, name)
         out["scoreboard_killer"] = sb.killer.label() if sb.killer else None

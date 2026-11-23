@@ -25,7 +25,7 @@ jobs:
           python-version: "3.12"
 
       - name: Nástroje
-        run: pip install "rapidfuzz>=3" "pytest>=8" "ruff==0.17.6"
+        run: pip install "rapidfuzz>=3" numpy opencv-python-headless "pytest>=8" "ruff==0.17.6"
 
       - name: Kontrola kódu (ruff)
         run: ruff check app tests

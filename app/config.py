@@ -26,6 +26,8 @@ DEFAULTS: dict = {
     "jmeno_ve_hre": "",
     "ukazat_zakladni_postavu": True,
     "ukazat_prestige": True,
+    "statistiky": True,
+    "ukazat_statistiky": True,
     "prestige_ikona": True,
     "velky_obrazek": "postava",
     "obrazky_z_wiki": True,

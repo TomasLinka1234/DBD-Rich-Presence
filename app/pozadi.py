@@ -3,10 +3,11 @@
     DbD-Rich-Presence.exe              spustit (ikonka u hodin)
     DbD-Rich-Presence.exe --autostart  totéž, ale potichu, když už běží (spouští ho Windows po přihlášení)
     DbD-Rich-Presence.exe --ukoncit    ukončit program běžící na pozadí
+    DbD-Rich-Presence.exe --statistiky otevřít přehled statistik v prohlížeči
     DbD-Rich-Presence.exe --self-test vysledek.json   kontrola sestaveného .exe
 
-Pravým tlačítkem na ikonku: co program právě ukazuje, nastavení, log,
-spouštění s Windows a ukončení. Nastavení se po uložení samo načte znovu.
+Pravým tlačítkem na ikonku: co program právě ukazuje, statistiky, nastavení,
+log, spouštění s Windows a ukončení. Nastavení se po uložení samo načte znovu.
 """
 
 from __future__ import annotations
@@ -62,6 +63,19 @@ def open_in_editor(path: Path) -> None:
             open_path(path)
     except Exception:
         pass
+
+
+def open_stats() -> Path:
+    """Vytvoří přehled statistik (statistiky.html ve složce s daty) a otevře ho v prohlížeči."""
+    import time
+
+    from paths import STATS, STATS_HTML
+    from stats import Stats, write_report
+    from winutil import open_path
+
+    out = write_report(Stats(STATS).matches, STATS_HTML, time.time())
+    open_path(out)
+    return out
 
 
 def _mtime(path: Path) -> float:
@@ -198,6 +212,13 @@ def run_tray(autostarted: bool) -> int:
                 message_box("Spouštění se zapnutím Windows se nepodařilo zapnout:\n" + info, error=True)
         icon.update_menu()
 
+    def show_stats(icon, item) -> None:
+        try:
+            open_stats()
+        except Exception as e:
+            log.exception("Přehled statistik se nepodařilo otevřít")
+            message_box(f"Přehled statistik se nepodařilo otevřít:\n{e}", error=True)
+
     def quit_app(icon, item) -> None:
         stop_all.set()
         rs = holder.get("run_stop")
@@ -207,6 +228,7 @@ def run_tray(autostarted: bool) -> int:
     menu = pystray.Menu(
         pystray.MenuItem(lambda item: state["text"][:110], None, enabled=False),
         pystray.Menu.SEPARATOR,
+        pystray.MenuItem("Statistiky", show_stats),
         pystray.MenuItem("Nastavení", lambda icon, item: open_in_editor(CONFIG)),
         pystray.MenuItem("Otevřít log", lambda icon, item: open_path(LOG_FILE)),
         pystray.MenuItem("Otevřít složku s daty", lambda icon, item: open_path(DATA)),
@@ -285,6 +307,16 @@ def self_test(out: str) -> int:
         assert [e["name"] for e in wiki_data.seq(t)] == ["Trapper", "Wraith"]
         return "ok"
 
+    def stats_check():
+        from stats import Match, render_html, result_from_texts
+
+        assert result_from_texts(["MATCH", "MERCILESS KILLER"]) == "k4"
+        assert result_from_texts(["ESCAPED"]) == "escaped"
+        now = time.time()
+        page = render_html([Match(now - 600, now, "KILLER", "The Trapper", map="Coal Tower", result="k3")], now)
+        assert "The Trapper" in page and "Coal Tower" in page
+        return f"{len(page)} znaků"
+
     def tray_check():
         import pystray
 
@@ -309,6 +341,7 @@ def self_test(out: str) -> int:
     step("data", catalog_check)
     step("ocr", ocr_check)
     step("wiki", wiki_check)
+    step("statistiky", stats_check)
     step("ikonka", tray_check)
     step("discord", discord_check)
     step("snimani", capture_check)
@@ -326,9 +359,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--vypnout", action="store_true", help="vypnout spouštění se zapnutím Windows")
     ap.add_argument("--ukoncit", action="store_true", help="ukončit program běžící na pozadí")
     ap.add_argument("--self-test", metavar="SOUBOR", help="kontrola sestaveného programu")
+    ap.add_argument("--statistiky", action="store_true", help="otevřít přehled statistik v prohlížeči")
     args, _ = ap.parse_known_args(argv)
     if args.self_test:
         return self_test(args.self_test)
+    if args.statistiky:
+        print(open_stats())
+        return 0
     if args.zapnout or args.vypnout:
         import autostart
 

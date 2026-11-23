@@ -17,6 +17,7 @@ from pathlib import Path
 from catalog import KILLER, SURVIVOR, Catalog, Character, MapMatch, compact
 from detect import QUEUED, Observation, ScanContext
 from images import Images
+from stats import MIN_MATCH_SECONDS, Match, Stats, character_line, result_role, result_text, today_line
 
 log = logging.getLogger("dbd")
 
@@ -42,6 +43,7 @@ LOADING_TIMEOUT = 150.0      # s; pak už určitě běží zápas, i když jsme 
 LOADING_GUESS = 45.0         # s; odhad délky načítání, když mapu nepřečteme
 POSTGAME_TIMEOUT = 25.0      # s bez obrazovky konce a bez lobby -> menu
 MATCH_MAX = 3 * 3600.0
+STATS_ROTATE = 20.0          # s; v menu a lobby se status střídá s dnešními statistikami
 
 
 def _clip(text: str | None) -> str | None:
@@ -80,10 +82,18 @@ class Store:
 
 
 class Tracker:
-    def __init__(self, catalog: Catalog, store: Store, config: dict, images: Images | None = None) -> None:
+    def __init__(self, catalog: Catalog, store: Store, config: dict, images: Images | None = None,
+                 stats: Stats | None = None) -> None:
         self.catalog = catalog
         self.store = store
-        self.texts = TEXTS.get(str(config.get("jazyk", "cs")).lower(), TEXTS["cs"])
+        lang = str(config.get("jazyk", "cs")).lower()
+        self.lang = lang if lang in TEXTS else "cs"
+        self.texts = TEXTS[self.lang]
+        self.stats = stats
+        self.show_stats = bool(config.get("ukazat_statistiky", True))
+        self.pending: Match | None = None       # rozehraný zápas pro statistiky
+        self.last_result: str | None = None     # výsledek posledního zápasu (obrazovka konce)
+        self._stats_cache: dict = {}
         self.show_map = bool(config.get("ukazat_mapu", True))
         self.show_time = bool(config.get("ukazat_cas_zapasu", True))
         self.show_base = bool(config.get("ukazat_zakladni_postavu", True))
@@ -123,6 +133,10 @@ class Tracker:
         if phase == self.phase:
             return
         old = self.phase
+        if old == MATCH:
+            self._match_over(now, phase)
+        elif old == POSTGAME:
+            self._finish()
         self.phase, self.phase_since = phase, now
         if phase == LOBBY and old != LOBBY:
             self.lobby_survivor_done = False
@@ -141,6 +155,72 @@ class Tracker:
         self._go(MATCH, now)
         self.match_start = start if start is not None else now
         self.match_start_exact = exact
+        self.last_result = None
+        self.pending = Match(start=self.match_start, end=self.match_start, role=self.role)
+
+    # ------------------------------------------------------------ statistiky
+    def _match_over(self, now: float, new_phase: str) -> None:
+        """Zápas skončil (obrazovka konce, odpojení, zavřená hra...)."""
+        p = self.pending
+        if p is None:
+            return
+        p.start = self.match_start or p.start
+        p.end = now
+        if self.map is not None:
+            p.map, p.realm = self.map.map, self.map.realm
+        self._fill(p)
+        if new_phase == POSTGAME:
+            return  # výsledek a scoreboard teprve přijdou, uloží se po odchodu z obrazovky konce
+        self.pending = None
+        if new_phase not in (LOBBY, OFF):
+            log.info("Zápas do statistik nepočítám (%s).", PHASE_LOG[new_phase])
+        elif not self.match_start_exact or p.duration < MIN_MATCH_SECONDS:
+            log.info("Zápas do statistik nepočítám (nejistý začátek nebo moc krátký).")
+        else:
+            self._record(p)  # bez obrazovky konce: výsledek nezjištěn
+
+    def _fill(self, p: Match) -> None:
+        if self.role:
+            p.role = self.role
+        c = self.character
+        if c is not None and c.role == p.role:
+            p.character, p.base = c.name, c.base
+        p.prestige = self.current_prestige()
+
+    def _finish(self) -> None:
+        """Odchod z obrazovky konce zápasu: zápas se uloží (i s tím, co ukázal scoreboard)."""
+        p, self.pending = self.pending, None
+        if p is not None:
+            self._fill(p)
+            self._record(p)
+
+    def _record(self, p: Match) -> None:
+        if self.stats is None:
+            return
+        self.stats.add(p)
+        self._stats_cache.clear()
+        log.info("Statistiky: %s, %s, %s, %d min", p.who or "postava neznámá", p.map or "mapa nepřečtená",
+                 result_text(p.result) or "výsledek nezjištěn", round(p.duration / 60))
+
+    def _got_result(self, result: str) -> None:
+        role = result_role(result)
+        if role and role != self.role:
+            self._set_role(role, "výsledek zápasu")
+        if self.phase != POSTGAME:
+            return
+        if self.last_result is None:
+            self.last_result = result
+        if self.pending is not None and self.pending.result is None:
+            self.pending.result = result
+            log.info("Výsledek zápasu: %s", result_text(result))
+
+    def flush(self) -> None:
+        """Program končí: dohraný zápas (obrazovka konce) se ještě uloží."""
+        if self.phase == POSTGAME:
+            self._finish()
+        elif self.pending is not None:
+            log.info("Zápas ještě běží, program se ukončuje -> do statistik se nepočítá.")
+            self.pending = None
 
     def _set_char(self, c: Character, source: str) -> None:
         self.last[c.role] = c
@@ -239,6 +319,8 @@ class Tracker:
             self.end_seen_at = now
             if self.phase not in (POSTGAME, OFF):
                 self._go(POSTGAME, now, {"scoreboard": "scoreboard", "bloodpoints": "bloodpoints"}.get(obs.end_kind, "výsledek"))
+            if obs.end_result:
+                self._got_result(obs.end_result)
             return
 
         if obs.title is not None and (obs.title.map or obs.title.confidence >= 0.4):
@@ -302,6 +384,28 @@ class Tracker:
                 self._go(MENU, now, "zápas trvá podezřele dlouho")
 
     # ------------------------------------------------------------ output
+    def _stats_texts(self, now: float) -> tuple[str | None, str | None]:
+        """(dnešní zápasy pro status, souhrn za postavu pro popisek obrázku)"""
+        if self.stats is None or not self.show_stats or not self.stats.matches:
+            return None, None
+        c = self.character
+        who = (c.base or c.name) if c else None
+        key = (len(self.stats.matches), self.role, who, int(now // 600))
+        if key not in self._stats_cache:
+            self._stats_cache.clear()
+            self._stats_cache[key] = (today_line(self.stats.today(now, self.role), self.lang),
+                                      character_line(self.stats.for_character(who), self.lang) if who else None)
+        return self._stats_cache[key]
+
+    @staticmethod
+    def _rotate(details: str | None, state: str | None, extra: str | None, now: float) -> tuple:
+        """Status se každých STATS_ROTATE sekund vystřídá se statistikami."""
+        if not extra:
+            return details, state
+        if state is None:
+            return details, extra
+        return (details, extra) if int(now // STATS_ROTATE) % 2 == 1 else (details, state)
+
     def activity(self, now: float) -> dict | None:
         if self.phase == OFF:
             return None
@@ -309,6 +413,7 @@ class Tracker:
         char_text = self.character.label(self.show_base) if self.character else None
         prestige = self.current_prestige() if self.show_prestige else None
         p_text = f"Prestige {prestige}" if prestige is not None else None
+        today_text, char_stats = self._stats_texts(now)
         role_text = T[self.role] if self.role else None
         who = f"{role_text}: {char_text}" if (role_text and char_text) else role_text
         map_text = self.map.label() if (self.map is not None and self.map.label()) else None
@@ -327,12 +432,18 @@ class Tracker:
                 details, state = state, None
             elif p_text:
                 state = f"{state} · {p_text}"
+            details, state = self._rotate(details, state, today_text, now)
         else:
             label = T[self.phase]
-            if self.phase == MENU and who and p_text:
+            result = result_text(self.last_result, self.lang) if (self.show_stats and self.phase == POSTGAME) else None
+            if result:
+                label = f"{label} · {result}"
+            elif self.phase == MENU and who and p_text:
                 label = f"{label} · {p_text}"
             details, state = (who, label) if who else (label, None)
-        hover = f"{char_text} · {p_text}" if (char_text and p_text) else char_text
+            if self.phase in (MENU, POSTGAME) and not result:
+                details, state = self._rotate(details, state, today_text, now)
+        hover = " · ".join(t for t in (char_text, p_text, char_stats) if t) or None
         img = self.images.pick(self.phase == MATCH and self.show_map, self.role, role_text,
                                self.character, hover, self.map, map_text,
                                prestige if self.character else None, p_text)

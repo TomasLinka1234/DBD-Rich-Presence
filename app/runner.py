@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 from typing import Callable
 
-from paths import BUILTIN_DATA, DEBUG_DIR, IMAGE_CACHE, STATE, UPLOADS, WIKI_CACHE, ensure_data_dir
+from paths import BUILTIN_DATA, DEBUG_DIR, IMAGE_CACHE, STATE, STATS, UPLOADS, WIKI_CACHE, ensure_data_dir
 
 log = logging.getLogger("dbd")
 
@@ -107,6 +107,7 @@ class Runner:
         from catalog import Catalog
         from images import Images, MapSnapshots, PrestigeBadges
         from presence import DiscordPresence
+        from stats import Stats
         from tracker import OFF, Store, Tracker
         from wiki_data import WikiUpdater
 
@@ -120,7 +121,10 @@ class Runner:
         self.images = Images(self.app_id, cfg, offline=dry_run, cache_path=IMAGE_CACHE,
                              catalog=self.catalog)
         self.images.refresh(time.time())
-        self.tracker = tracker = Tracker(self.catalog, store, cfg, self.images)
+        stats = Stats(STATS) if cfg.get("statistiky", True) else None
+        if stats is not None and dry_run:
+            stats.path = None  # nanečisto: statistiky ukázat, ale nic nezapisovat
+        self.tracker = tracker = Tracker(self.catalog, store, cfg, self.images, stats)
         snapshots = MapSnapshots(UPLOADS, self.images, bool(cfg.get("ukladat_obrazky_map", False)))
         badges = PrestigeBadges(UPLOADS, self.images, bool(cfg.get("ukladat_odznaky_prestige", False)))
         self.discord = discord = DiscordPresence(self.app_id or "0", dry_run=dry_run)
@@ -235,6 +239,7 @@ class Runner:
                     if self._wait(3.0):
                         break
         finally:
+            tracker.flush()
             self.wiki.stop()
             discord.close()
             self._release_heavy()
